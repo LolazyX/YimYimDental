@@ -1,0 +1,106 @@
+﻿@model UserViewModel;
+
+@{
+    ViewData["Title"] = "เพิ่มผู้ใช้งานระบบ";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-primary">เพิ่มผู้ใช้งานระบบ</h4>
+    </div>
+
+    <form asp-controller="Admin" asp-action="Create" method="post" class="bg-white p-4 rounded shadow-sm border">
+        <div class="row g-3">
+
+            <!-- ตำแหน่ง -->
+            <div class="col-md-6">
+                <label asp-for="Position" class="form-label">ตำแหน่ง</label>
+                <input type="text" class="form-control" asp-for="Position" placeholder="เจ้าหน้าที่" required>
+            </div>
+
+            <!-- ชื่อ-สกุล -->
+            <div class="col-md-6">
+                <label asp-for="FullName" class="form-label">ชื่อ-สกุล</label>
+                <input type="text" class="form-control" asp-for="FullName" placeholder="นางสาว ศิริพร ขยันดี" required>
+            </div>
+
+            <!-- วันเกิด -->
+            <div class="col-md-4">
+                <label asp-for="DateOfBirth" class="form-label">วันเกิด</label>
+                <input type="date" class="form-control" asp-for="DateOfBirth" required>
+            </div>
+
+            <!-- เบอร์โทร -->
+            <div class="col-md-4">
+                <label asp-for="Phone" class="form-label">เบอร์โทร</label>
+                <input type="tel" class="form-control" asp-for="Phone" placeholder="0812345678" required>
+            </div>
+
+            <!-- อีเมล -->
+            <div class="col-md-4">
+                <label asp-for="Email" class="form-label">อีเมล</label>
+                <input type="email" class="form-control" asp-for="Email" placeholder="example@domain.com" required>
+            </div>
+
+            <!-- รหัสผ่าน -->
+            <div class="col-md-6">
+                <label asp-for="Password" class="form-label">รหัสผ่าน</label>
+                <input type="password" class="form-control" asp-for="Password" required>
+            </div>
+
+            <!-- สิทธิ์การใช้งาน -->
+            <div class="col-md-6">
+                <label asp-for="Role" class="form-label">สิทธิ์การใช้งาน</label>
+                <select asp-for="Role" class="form-select" required>
+                    <option value="">-- เลือกสิทธิ์ --</option>
+                    <option value="Dentist" selected="@(ViewBag.NewUserRole == "Dentist")">ทันตแพทย์</option>
+                    <option value="Officer" selected="@(ViewBag.NewUserRole == "Officer")">เจ้าหน้าที่ฝ่ายธุรการ</option>
+                   
+                </select>
+                <span asp-validation-for="Role" class="text-danger"></span>
+            </div>
+
+            <!-- ที่อยู่ -->
+            <div class="col-12">
+                <label asp-for="Address" class="form-label">ที่อยู่</label>
+                <textarea class="form-control" asp-for="Address" rows="3" placeholder="123/4 หมู่บ้านสุขใจ ต.ในเมือง อ.เมือง จ.กรุงเทพฯ 12345" required></textarea>
+            </div>
+
+            <!-- ปุ่มบันทึก -->
+            <div class="col-12 text-end mt-4">
+                <button type="submit" class="btn btn-primary px-4 py-2">
+                    <i class="fa-solid fa-floppy-disk me-2"></i>บันทึกข้อมูล
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'เพิ่มผู้ใช้งานสำเร็จ',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+            </text>
+        }
+
+        @if (TempData["DuplicateEmail"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'อีเมลนี้ถูกใช้แล้ว',
+                        text: 'กรุณาใช้อีเมลอื่น',
+                        confirmButtonText: 'ตกลง'
+                    });
+            </text>
+        }
+    </script>
+}

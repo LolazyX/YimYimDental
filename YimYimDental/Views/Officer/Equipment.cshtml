@@ -1,0 +1,157 @@
+﻿@model IEnumerable<YimYimDental.Models.Equipment>
+
+@{
+    ViewData["Title"] = "อุปกรณ์ทั้งหมด";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-primary">อุปกรณ์ทั้งหมด</h4>
+        <a asp-action="EquipmentCreate" asp-controller="Officer" class="btn btn-success">
+            <i class="fa-solid fa-plus pe-2"></i> เพิ่มอุปกรณ์
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning text-center">
+            ยังไม่มีข้อมูลอุปกรณ์
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle bg-white shadow-sm">
+                <thead class="table-primary text-center">
+                    <tr>
+                        <th>ลำดับ</th>
+                        <th>ชื่ออุปกรณ์</th>
+                        <th>ราคา (บาท)</th>
+                        <th>การจัดการ</th>
+                    </tr>
+                </thead>
+                @{
+                    var count = 0;
+                }
+                <tbody>
+                    @foreach (var equipment in Model)
+                    {
+                        count++;
+                        <tr>
+                            <td class="text-center">@count</td>
+                            <td>@equipment.Name</td>
+                            <td class="text-end">@equipment.Price.ToString("N2")</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-warning me-2"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editEquipmentModal"
+                                        data-id="@equipment.Id"
+                                        data-name="@equipment.Name"
+                                        data-price="@equipment.Price.ToString("N2")">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไข
+                                </button>
+                                <button class="btn btn-sm btn-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteEquipmentModal"
+                                        data-id="@equipment.Id"
+                                        data-name="@equipment.Name">
+                                    <i class="fa-solid fa-trash me-1"></i> ลบ
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Modal แก้ไขอุปกรณ์ -->
+<div class="modal fade" id="editEquipmentModal" tabindex="-1" aria-labelledby="editEquipmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">แก้ไขอุปกรณ์</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editEquipmentForm" method="post" action="">
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="editEquipmentId" />
+
+                    <div class="mb-3">
+                        <label class="form-label">ชื่ออุปกรณ์</label>
+                        <input type="text" class="form-control" name="Name" id="editEquipmentName" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">ราคา (บาท)</label>
+                        <input type="number" class="form-control" name="Price" id="editEquipmentPrice" required step="0.01" min="0" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning text-dark">บันทึกการแก้ไข</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal ลบอุปกรณ์ -->
+<div class="modal fade" id="deleteEquipmentModal" tabindex="-1" aria-labelledby="deleteEquipmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">ยืนยันการลบอุปกรณ์</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                คุณต้องการลบอุปกรณ์ <strong id="deleteEquipmentName"></strong> ใช่หรือไม่?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteEquipmentForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">ลบ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const editModal = document.getElementById('editEquipmentModal');
+        editModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            document.getElementById('editEquipmentId').value = button.getAttribute('data-id');
+            document.getElementById('editEquipmentName').value = button.getAttribute('data-name');
+            document.getElementById('editEquipmentPrice').value = button.getAttribute('data-price');
+            document.getElementById('editEquipmentForm').action = `/Officer/EquipmentEdit/${button.getAttribute('data-id')}`;
+        });
+
+        const deleteModal = document.getElementById('deleteEquipmentModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const name = button.getAttribute('data-name');
+            const id = button.getAttribute('data-id');
+            document.getElementById('deleteEquipmentName').textContent = name;
+            document.getElementById('deleteEquipmentForm').action = `/Officer/EquipmentDelete/${id}`;
+        });
+
+
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'เพิ่มอุปกรณ์สำเร็จ',
+                                showConfirmButton: true,
+                                timer: 2000
+                            });
+            </text>
+        }
+    </script>
+}

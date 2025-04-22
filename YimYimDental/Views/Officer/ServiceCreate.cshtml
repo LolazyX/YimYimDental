@@ -1,0 +1,41 @@
+﻿@model YimYimDental.Models.Service
+
+@{
+    ViewData["Title"] = "เพิ่มบริการ";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-primary">เพิ่มบริการ</h4>
+        <a asp-controller="Officer" asp-action="Service" class="btn btn-success">
+            <i class="fa-solid fa-list me-2"></i> ดูรายการบริการ
+        </a>
+    </div>
+
+    <form asp-action="ServiceCreate" method="post" class="bg-white p-4 rounded shadow-sm border">
+        <!-- ชื่อบริการ -->
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label">ชื่อบริการ</label>
+            <input asp-for="Name" class="form-control" placeholder="ระบุชื่อบริการ เช่น อุดฟัน, ขูดหินปูน" required />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <!-- ราคา -->
+        <div class="mb-3">
+            <label asp-for="Price" class="form-label">ราคา (บาท)</label>
+            <input asp-for="Price" class="form-control" placeholder="ระบุราคา เช่น 500" required />
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk me-2"></i> บันทึกบริการ
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,163 @@
+﻿@model IEnumerable<YimYimDental.Models.Service>
+
+@{
+    ViewData["Title"] = "บริการทั้งหมด";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-primary">บริการทั้งหมด</h4>
+        <a asp-action="ServiceCreate" asp-controller="Officer" class="btn btn-success">
+            <i class="fa-solid fa-plus pe-2"></i> เพิ่มบริการ
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning text-center">
+            ยังไม่มีข้อมูลบริการ
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle bg-white shadow-sm">
+                <thead class="table-primary text-center">
+                    <tr>
+                        <th>ลำดับ</th>
+                        <th>ชื่อบริการ</th>
+                        <th>ราคา (บาท)</th>
+                        <th>การจัดการ</th>
+                    </tr>
+                </thead>
+                @{
+                    var count = 0;
+                }
+                <tbody>
+                    @foreach (var service in Model)
+                    {
+						count++;
+                        <tr>
+                            <td class="text-center">@count</td>
+                            <td>@service.Name</td>
+                            <td class="text-end">@service.Price.ToString("N2")</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-warning me-2"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editServiceModal"
+                                        data-id="@service.Id"
+                                        data-name="@service.Name"
+                                        data-price="@service.Price.ToString("N2")">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไข
+                                </button>
+                                <button class="btn btn-sm btn-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteServiceModal"
+                                        data-id="@service.Id"
+                                        data-name="@service.Name">
+                                    <i class="fa-solid fa-trash me-1"></i> ลบ
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Modal แก้ไขบริการ -->
+<div class="modal fade" id="editServiceModal" tabindex="-1" aria-labelledby="editServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">แก้ไขบริการ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editServiceForm" method="post" action="">
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" id="editServiceId" />
+
+                    <div class="mb-3">
+                        <label class="form-label">ชื่อบริการ</label>
+                        <input type="text" class="form-control" name="Name" id="editServiceName" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">ราคา (บาท)</label>
+                        <input type="number" class="form-control" name="Price" id="editServicePrice" required step="0.01" min="0" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning text-dark">บันทึกการแก้ไข</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal ลบบริการ -->
+<div class="modal fade" id="deleteServiceModal" tabindex="-1" aria-labelledby="deleteServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">ยืนยันการลบบริการ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                คุณต้องการลบบริการ <strong id="deleteServiceName"></strong> ใช่หรือไม่?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteServiceForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">ลบ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ตั้งค่า Modal สำหรับแก้ไข
+        const editModal = document.getElementById('editServiceModal');
+        editModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+
+            // ตั้งค่าข้อมูลที่เกี่ยวข้อง
+            document.getElementById('editServiceId').value = button.getAttribute('data-id');
+            document.getElementById('editServiceName').value = button.getAttribute('data-name');
+            document.getElementById('editServicePrice').value = button.getAttribute('data-price');
+
+            // ตั้งค่า action ของฟอร์ม
+            document.getElementById('editServiceForm').action = `/Officer/ServiceEdit/${button.getAttribute('data-id')}`;
+        });
+
+        // ตั้งค่า Modal สำหรับลบ
+        const deleteModal = document.getElementById('deleteServiceModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+
+            const name = button.getAttribute('data-name');
+            const id = button.getAttribute('data-id');
+            document.getElementById('deleteServiceName').textContent = name;
+            document.getElementById('deleteServiceForm').action = `/Officer/ServiceDelete/${id}`;
+        });
+
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'เพิ่มบริการสำเร็จ',
+                            showConfirmButton: true,
+                            timer: 2000
+                        });
+            </text>
+        }
+    </script>
+}

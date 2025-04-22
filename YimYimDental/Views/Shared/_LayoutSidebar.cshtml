@@ -1,0 +1,212 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - YimYimDental</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/YimYimDental.styles.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- FullCalendar CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+
+</head>
+
+<body>
+
+    @{
+		var name = Context.Session.GetString("FullName");
+        var username = Context.Session.GetString("Username");
+        var role = Context.Session.GetString("Role");
+    }
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="shadow-sm">
+        <div class="sidebar-content">
+            <h4 class="mb-4 text-primary fw-semibold navbar-brand fs-5"><i class="fa-solid fa-tooth pe-2"></i>คลินิกฟันยิมยิ้ม</h4>
+            <hr class="border-1" />
+            <ul class="nav flex-column fs-6">
+                @if (role == "Admin")
+                {
+                    <li class="nav-item">
+                        <a href="/Admin/Dashboard" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-gauge pe-2"></i> แดชบอร์ด
+                        </a>
+                    </li>
+                     <li class="nav-item">
+                        <a href="/Admin/Dentist" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-user-doctor pe-2"></i> ทันตแพทย์
+                        </a>
+                    </li>
+                     <li class="nav-item">
+                        <a href="/Admin/Officer" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-user-tie pe-2"></i> เจ้าหน้าที่ฝ่ายธุระการ
+                        </a>
+                    </li>
+                }
+
+                else if (role == "Officer")
+                {
+                    <li class="nav-item">
+                        <a href="/Officer/Dashboard" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-gauge pe-2"></i> แดชบอร์ด
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Customer/Index" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-list pe-2"></i> รายชื่อลูกค้า
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Queue/Index" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-clock pe-2"></i> คิวการรักษา
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Officer/WorkingTime" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-calendar-days pe-2"></i> ตารางงานทันตแพทย์
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Officer/Service" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-mug-hot pe-2"></i> บริการทั้งหมด
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Officer/Equipment" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-toolbox pe-2"></i> อุปกรณ์ทั้งหมด
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Officer/Billing" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-calculator pe-2"></i> คำนวณค่าบริการ
+                        </a>
+                    </li>
+
+                }
+                else if (role == "Dentist")
+                {
+                    <li class="nav-item">
+                        <a href="/Queue/Index" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-clock pe-2"></i> คิวการรักษา
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Xray/Index" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-x-ray pe-2"></i> เอ็กซ์เรย์
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Officer/Billing" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-calculator pe-2"></i> คำนวณค่าบริการ
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+        <div class="sidebar-footer mt-auto border-top">
+            <div class="p-2">
+                <button type="button"
+                        class="btn btn-danger w-100"
+                        data-bs-toggle="modal"
+                        data-bs-target="#logoutModal">
+                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>
+                    ออกจากระบบ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay สำหรับมือถือ -->
+    <div class="sidebar-overlay" onclick="toggleSidebarMobile()"></div>
+
+    <!-- Content Area -->
+    <div id="content">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg bg-white shadow-sm p-4 py-2 sticky-top">
+            <div class="d-flex w-100 justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn toggleSidebar" onclick="toggleSidebar()">☰</button>
+                    <button class="btn toggleSidebarMobile" onclick="toggleSidebarMobile()">☰</button>
+                    <span class="mb-0 fs-6">@ViewBag.Title</span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-muted">
+                        👤 <strong>@name</strong> (@role)
+                    </span>
+                </div>
+            </div>
+        </nav>
+
+        <div id="content-main">
+            @RenderBody()
+        </div>
+
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mx-auto logout-layout">
+            <div class="modal-content border-0 shadow w-100 ">
+                <div class="modal-header bg-danger text-white p-3">
+                    <h5 class="modal-title">ยืนยันการออกจากระบบ</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3">
+                    คุณต้องการออกจากระบบใช่หรือไม่?
+                </div>
+                <div class="modal-footer p-2">
+                    <form method="post" action="/Account/Logout">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger p-2">ออกจากระบบ</button>
+                        <button type="button" class="btn btn-secondary p-2" data-bs-dismiss="modal">ยกเลิก</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('content');
+            sidebar.classList.toggle('sidebar-hidden');
+            content.classList.toggle('full-width');
+        }
+
+        function toggleSidebarMobile() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-visible'); // ใช้คลาสใหม่
+
+            const overlay = document.querySelector('.sidebar-overlay');
+            overlay.style.display = sidebar.classList.contains('sidebar-visible') ? 'block' : 'none';
+        }
+    </script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Include pdfmake libraries -->
+	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>-->
+	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="~/js/THSarabunNew-normal.js" ></script>
+    <!-- FullCalendar JS -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    <!-- Bootstrap 5-->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!--  SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

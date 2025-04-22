@@ -1,0 +1,602 @@
+﻿@model YimYimDental.Models.Customer
+
+@{
+    ViewData["Title"] = "รายละเอียดลูกค้า";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-primary">รายละเอียดลูกค้า</h4>
+        @{
+            if (ViewBag.Role == "Dentist")
+            {
+                <a asp-controller="Queue" asp-action="Index" class="btn btn-info">
+                    <i class="fa-solid fa-eye me-2"></i> ดูคิวการรักษา
+                </a>
+            }
+        }
+        @{
+            if (ViewBag.Role == "Officer" || ViewBag.Role == "Admin")
+            {
+                <a asp-controller="Customer" asp-action="Index" class="btn btn-success">
+                    <i class="fa-solid fa-eye me-2"></i> ดูรายชื่อลูกค้า
+                </a>
+            }
+        }
+    </div>
+
+    <div class="bg-white p-4 rounded shadow-sm border">
+        <!-- ข้อมูลส่วนตัว -->
+        <h5 class="mb-3 border-bottom pb-2 text-secondary">ข้อมูลส่วนตัว</h5>
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label class="form-label">ชื่อ-นามสกุล</label>
+                <input type="text" class="form-control" value="@Model.FullName" disabled>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">HN (6 หลัก)</label>
+                <input type="text" class="form-control" value="@Model.HN" disabled>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">เลขบัตรประชาชน</label>
+                <input type="text" class="form-control" value="@Model.NationalId" disabled>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">วันเกิด</label>
+                <input type="date" class="form-control" value="@(Model.DateOfBirth.Value.ToString("yyyy-MM-dd"))" disabled>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">อายุ (ปี)</label>
+                <input type="text" class="form-control" id="age" value="@ViewBag.Age" disabled>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">เพศ</label>
+                <input type="text" class="form-control" value="@Model.Gender" disabled>
+            </div>
+        </div>
+
+        <!-- ข้อมูลติดต่อ -->
+        <h5 class="mt-4 mb-3 border-bottom pb-2 text-secondary">ข้อมูลติดต่อ</h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">เบอร์มือถือ</label>
+                <input type="tel" class="form-control" value="@Model.Phone" disabled>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">อีเมล (ถ้ามี)</label>
+                <input type="email" class="form-control" value="@Model.Email" disabled>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">ที่อยู่</label>
+                <textarea class="form-control" rows="1" disabled>@Model.Address</textarea>
+            </div>
+        </div>
+
+        <!-- ข้อมูลสุขภาพ -->
+        <h5 class="mt-4 mb-3 border-bottom pb-2 text-secondary">ข้อมูลสุขภาพ</h5>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">โรคประจำตัว</label>
+                <textarea class="form-control" rows="2" disabled>@Model.ChronicDiseases</textarea>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">ประวัติการแพ้ยา/อาหาร</label>
+                <textarea class="form-control" rows="2" disabled>@Model.Allergies</textarea>
+            </div>
+        </div>
+
+        <!-- Treatment History Section with Bootstrap 5 Styling -->
+        <h5 class="mt-4 mb-3 border-bottom pb-2 text-secondary">ประวัติการรักษา</h5>
+        <div class="row g-4">
+            <!-- Left column: Date list as Bootstrap list-group/nav-pills -->
+            <div class="col-md-3">
+                <div class="list-group list-group-flush overflow-auto border rounded" style="max-height:185px;">
+                    @* If no histories *@
+                    @if (Model.TreatmentHistories == null || !Model.TreatmentHistories.Any())
+                    {
+                        <div class="text-center text-muted py-5">
+                            ไม่มีรายการ
+                        </div>
+                    }
+                    else
+                    {
+                        var histories = Model.TreatmentHistories.OrderByDescending(h => h.TreatmentDate).ToList();
+                        var firstId = histories.First().Id;
+                        foreach (var h in histories)
+                        {
+                            <button class="list-group-item list-group-item-action d-flex  align-items-center @((h.Id == firstId) ? "active" : "")"
+                            id="list-hist-@h.Id-list"
+                            data-bs-toggle="list"
+                            data-bs-target="#hist-@h.Id"
+                            role="tab"
+                            aria-controls="hist-@h.Id">
+                                <span>@h.TreatmentDate.ToString("dd/MM/yyyy HH:mm")</span>
+                                
+                            </button>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Right column: Detail panes as tab-content -->
+            <div class="col-md-9">
+                @if (Model.TreatmentHistories == null || !Model.TreatmentHistories.Any())
+                {
+                    <div class="alert alert-info">
+                        ยังไม่มีประวัติการรักษา
+                    </div>
+                }
+                else
+                {
+                    <div class="tab-content">
+                        @{
+                            var histories = Model.TreatmentHistories.OrderByDescending(h => h.TreatmentDate).ToList();
+                            var firstId = histories.First().Id;
+                            foreach (var h in histories)
+                            {
+                                <div class="tab-pane fade mb-3 @((h.Id == firstId) ? "show active" : "")"
+                                id="hist-@h.Id"
+                                role="tabpanel"
+                                aria-labelledby="list-hist-@h.Id-list">
+                                    <div class="card border rounded">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h5 class="card-title text-primary mb-0">
+                                                    <i class="fa-regular fa-calendar-days me-2"></i>
+                                                    @h.TreatmentDate.ToString("dd MMMM yyyy เวลา HH:mm นาฬิกา", new System.Globalization.CultureInfo("th-TH"))
+                                                </h5>
+
+                                                <div>
+                                                    <button class="btn btn-sm btn-warning me-1"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editTreatmentModal"
+                                                            onclick="fillEditTreatmentModal({
+                                                                id: '@h.Id',
+                                                                treatmentDate: '@h.TreatmentDate.ToString("yyyy-MM-ddTHH:mm")',
+                                                                treatmentDetails: '@h.TreatmentDetails',
+                                                                equipmentDetails: '@h.EquipmentDetails',
+                                                                treatmentRights: '@h.TreatmentRights',
+                                                                dentistName: '@h.DentistName'
+                                                            })">
+                                                        <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไข
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteHistoryModal"
+                                                            data-id="@h.Id"
+                                                            data-date="@h.TreatmentDate.ToString("dd MMMM yyyy เวลา HH:mm นาฬิกา", new System.Globalization.CultureInfo("th-TH"))">
+                                                        <i class="fa-solid fa-trash me-1"></i> ลบ
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <p class="mb-2"><strong>ผลการตรวจ:</strong> @h.TreatmentDetails</p>
+
+                                            @if (!string.IsNullOrWhiteSpace(h.EquipmentDetails))
+                                            {
+                                                <p class="mb-2"><strong>อุปกรณ์เพิ่มเติม:</strong> @h.EquipmentDetails</p>
+                                            }else
+                                            {
+                                                <p class="mb-2"><strong>อุปกรณ์เพิ่มเติม:</strong> ไม่มี</p>
+                                            }
+
+                                        <p class="mb-2"><strong>สิทธิ์การรักษา:</strong> @h.TreatmentRights</p>
+                                        <p class="mb-0"><strong>แพทย์ผู้ตรวจ:</strong> @h.DentistName</p>
+                                    </div>
+                                </div>
+                            </div>
+                            }
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @{
+            if(ViewBag.Role != "Officer")
+            {
+                <h5 class="mt-4 mb-3 border-bottom pb-2 text-secondary">บันทึกการรักษา</h5>
+                <form asp-controller="Customer" asp-action="SaveHistory" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <!-- ซ่อน CustomerId -->
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="queue" value="@ViewBag.Queue" />
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                ผลการตรวจ <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="TreatmentDetails" class="form-control" rows="2" required></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">อุปกรณ์เพิ่มเติม</label>
+                            <textarea name="EquipmentDetails" class="form-control" rows="2"></textarea>
+                        </div>
+                        <!-- X-ray Gallery Section -->
+                        <div class="col-md-6">
+                            <label class="form-label">รูปเอ็กซ์เรย์</label>
+                            <div style="overflow-x: auto; white-space: nowrap;">
+                                <div class="d-flex flex-nowrap gap-2">
+                                    @if (ViewBag.Xrays == null || !((List<YimYimDental.Models.Xray>)ViewBag.Xrays).Any())
+                                    {
+                                        <div class="text-center text-muted py-4 w-100">
+                                            ไม่มีรูปเอ็กซ์เรย์
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        foreach (var x in (List<YimYimDental.Models.Xray>)ViewBag.Xrays)
+                                        {
+                                            <div class="card shadow-sm me-2"
+                                                 style="min-width: 18%; max-width: 18%;"
+                                                 data-bs-toggle="modal"
+                                                 data-bs-target="#viewXrayModal"
+                                                 data-image="@x.ImagePath"
+                                                 data-name="@Model.FullName"
+                                                 data-datetime='@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")'>
+                                                <img src="@x.ImagePath"
+                                                     class="card-img-top img-thumbnail"
+                                                     alt="X-ray @x.Id"
+                                                     style="max-height:90px; width:100%; object-fit:cover; cursor:pointer;" />
+                                                <div class="card-body p-2 text-center">
+                                                    <small class="text-secondary">@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                สิทธิ์การรักษา <span class="text-danger">*</span>
+                            </label>
+                            <select name="TreatmentRight" class="form-select" required>
+                                <option value="">-- เลือกสิทธิ์การรักษา --</option>
+                                <option value="ไม่มี">ไม่มี</option>
+                                <option value="สิทธิบัตรทอง">สิทธิบัตรทอง</option>
+                                <option value="สิทธิประกันสังคม">สิทธิประกันสังคม</option>
+                                <option value="สิทธิข้าราชการ">สิทธิข้าราชการ</option>
+                            </select>
+
+                            <label class="form-label mt-4">
+                                แพทย์ผู้ตรวจ
+                            </label>
+                            <input type="hidden" name="DentistName" value="@ViewBag.DentistName" />
+                            <input type="text" class="form-control" value="@ViewBag.DentistName" disabled>
+                        </div>
+                    </div>
+
+                    <div class="text-end mt-4">
+                        <button type="submit" class="btn btn-success px-4 py-2">
+                            <i class="fa-solid fa-floppy-disk me-2"></i> บันทึก
+                        </button>
+                    </div>
+                </form>
+
+            }
+        }
+
+
+
+        <!-- ปุ่มแก้ไขและลบข้อมูล -->
+       
+            @{
+                if (ViewBag.Role != "Dentist")
+                {
+                <div class="col-12 text-end mt-4">
+                    <a asp-controller="Queue" asp-action="Create" asp-route-customerHN="@Model.HN" class="btn btn-info px-4 py-2 me-2">
+                        <i class="fa-solid fa-plus me-2"></i> เพิ่มคิว
+                    </a>
+                    <!-- ปุ่มแก้ไขข้อมูลเปิด Modal -->
+                    <a href="#"
+                    data-bs-toggle="modal"
+                    data-bs-target="#editCustomerModal"
+                    data-id="@Model.Id"
+                    data-fullname="@Model.FullName"
+                    data-hn="@Model.HN"
+                    data-nationalid="@Model.NationalId"
+                    data-dob="@(Model.DateOfBirth.Value.ToString("yyyy-MM-dd"))"
+                    data-gender="@Model.Gender"
+                    data-phone="@Model.Phone"
+                    data-email="@Model.Email"
+                    data-address="@Model.Address"
+                    data-chronicdiseases="@Model.ChronicDiseases"
+                    data-allergies="@Model.Allergies"
+                       class="btn btn-warning px-4 py-2">
+                        <i class="fa-solid fa-edit me-2"></i> แก้ไขข้อมูล
+                    </a>
+                    <!-- ปุ่มลบข้อมูลเปิด Modal -->
+                    <button type="button" class="btn btn-danger px-4 py-2 ms-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteCustomerModal"
+                    data-id="@Model.Id"
+                    data-name="@Model.FullName">
+                        <i class="fa-solid fa-trash me-2"></i> ลบข้อมูล
+                    </button>
+                </div>
+                }
+            }
+        
+
+    </div>
+</div>
+
+<!-- Modal แก้ไขข้อมูลลูกค้า -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="editCustomerModalLabel">แก้ไขข้อมูลลูกค้า</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+            </div>
+            <form id="editCustomerForm" method="post" action="/Customer/Edit">
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="editCustomerId" name="Id" />
+                    <div class="mb-3">
+                        <label for="editCustomerFullName" class="form-label">ชื่อ-นามสกุล</label>
+                        <input type="text" class="form-control" id="editCustomerFullName" name="FullName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCustomerHN" class="form-label">HN (6 หลัก)</label>
+                        <input type="text" class="form-control" id="editCustomerHN" name="HN" maxlength="6" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCustomerNationalId" class="form-label">เลขบัตรประชาชน</label>
+                        <input type="text" class="form-control" id="editCustomerNationalId" name="NationalId" maxlength="13" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCustomerDob" class="form-label">วันเกิด</label>
+                        <input type="date" class="form-control" id="editCustomerDob" name="DateOfBirth" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCustomerGender" class="form-label">เพศ</label>
+                        <select class="form-select" id="editCustomerGender" name="Gender" required>
+                            <option value="">-- เลือกเพศ --</option>
+                            <option value="ชาย">ชาย</option>
+                            <option value="หญิง">หญิง</option>
+                            <option value="อื่น ๆ">อื่น ๆ</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCustomerPhone" class="form-label">เบอร์โทร</label>
+                        <input type="tel" class="form-control" id="editCustomerPhone" name="Phone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCustomerEmail" class="form-label">อีเมล (ถ้ามี)</label>
+                        <input type="email" class="form-control" id="editCustomerEmail" name="Email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCustomerAddress" class="form-label">ที่อยู่</label>
+                        <textarea class="form-control" id="editCustomerAddress" name="Address" rows="2" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCustomerChronicDiseases" class="form-label">โรคประจำตัว</label>
+                        <textarea class="form-control" id="editCustomerChronicDiseases" name="ChronicDiseases" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCustomerAllergies" class="form-label">ประวัติการแพ้ยา/อาหาร</label>
+                        <textarea class="form-control" id="editCustomerAllergies" name="Allergies" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning text-dark">บันทึกการแก้ไข</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal ยืนยันการลบ -->
+<div class="modal fade" id="deleteCustomerModal" tabindex="-1" aria-labelledby="deleteCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteCustomerModalLabel">ยืนยันการลบ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="ปิด"></button>
+            </div>
+            <div class="modal-body">
+                ต้องการลบลูกค้า <strong id="customerName"></strong> หรือไม่?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteCustomerForm" method="post" action="">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">ลบข้อมูล</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                   
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal แก้ไขประวัติการรักษา -->
+<div class="modal fade" id="editTreatmentModal" tabindex="-1" aria-labelledby="editTreatmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="editTreatmentModalLabel">แก้ไขประวัติการรักษา</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+            </div>
+            <form method="post" action="/Customer/EditTreatmen">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" id="editTreatmentId" name="Id" />
+                    <div class="mb-3">
+                        <label for="editTreatmentDate" class="form-label">วันที่รักษา</label>
+                        <input type="datetime-local" class="form-control" id="editTreatmentDate" name="TreatmentDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTreatmentDetails" class="form-label">ผลการตรวจ</label>
+                        <textarea class="form-control" id="editTreatmentDetails" name="TreatmentDetails" rows="2" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEquipmentDetails" class="form-label">อุปกรณ์เพิ่มเติม</label>
+                        <textarea class="form-control" id="editEquipmentDetails" name="EquipmentDetails" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTreatmentRights" class="form-label">สิทธิ์การรักษา</label>
+                        <select id="editTreatmentRights" name="TreatmentRights" class="form-select" required>
+                            <option value="">-- เลือกสิทธิ์การรักษา --</option>
+                            <option value="ไม่มี">ไม่มี</option>
+                            <option value="สิทธิบัตรทอง">สิทธิบัตรทอง</option>
+                            <option value="สิทธิประกันสังคม">สิทธิประกันสังคม</option>
+                            <option value="สิทธิข้าราชการ">สิทธิข้าราชการ</option>
+                        </select>
+                    </div>
+                    <input type="text" class="form-control" id="editDentistName" name="DentistName" hidden>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning text-dark">บันทึกการแก้ไข</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal ยืนยันการลบประวัติการรักษา -->
+<div class="modal fade" id="deleteHistoryModal" tabindex="-1" aria-labelledby="deleteHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteHistoryModalLabel">ยืนยันการลบ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="ปิด"></button>
+            </div>
+            <div class="modal-body">
+                ต้องการลบประวัติการรักษาเมื่อ <strong id="historyDateText"></strong> หรือไม่?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteHistoryForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">ลบข้อมูล</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="viewXrayModal" tabindex="-1" aria-labelledby="viewXrayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="viewXrayModalLabel">ภาพเอ็กซ์เรย์ของ @Model.FullName</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="xrayPreview" src="" class="img-fluid" alt="X-ray" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // ตั้งค่า Modal แก้ไขข้อมูลลูกค้าเมื่อเปิด Modal
+        var editCustomerModal = document.getElementById('editCustomerModal');
+        editCustomerModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var id = button.getAttribute('data-id');
+            var fullName = button.getAttribute('data-fullname');
+            var hn = button.getAttribute('data-hn');
+            var nationalId = button.getAttribute('data-nationalid');
+            var dob = button.getAttribute('data-dob');
+            var gender = button.getAttribute('data-gender');
+            var phone = button.getAttribute('data-phone');
+            var email = button.getAttribute('data-email');
+            var address = button.getAttribute('data-address');
+            var chronicDiseases = button.getAttribute('data-chronicdiseases');
+            var allergies = button.getAttribute('data-allergies');
+
+            document.getElementById('editCustomerId').value = id;
+            document.getElementById('editCustomerFullName').value = fullName;
+            document.getElementById('editCustomerHN').value = hn;
+            document.getElementById('editCustomerNationalId').value = nationalId;
+            document.getElementById('editCustomerDob').value = dob;
+            document.getElementById('editCustomerGender').value = gender;
+            document.getElementById('editCustomerPhone').value = phone;
+            document.getElementById('editCustomerEmail').value = email;
+            document.getElementById('editCustomerAddress').value = address;
+            document.getElementById('editCustomerChronicDiseases').value = chronicDiseases;
+            document.getElementById('editCustomerAllergies').value = allergies;
+        });
+
+        // ตั้งค่า Modal ยืนยันการลบข้อมูลลูกค้า
+        var deleteCustomerModal = document.getElementById('deleteCustomerModal');
+        deleteCustomerModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var customerId = button.getAttribute('data-id');
+            var customerName = button.getAttribute('data-name');
+
+            document.getElementById('customerName').textContent = customerName;
+            document.getElementById('deleteCustomerForm').action = '/Customer/Delete/' + customerId;
+        });
+
+
+        document.querySelectorAll('.list-group-item').forEach(function(item) {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                var target = this.getAttribute('data-target');
+
+                // ซ่อนทุกรายละเอียด
+                document.querySelectorAll('.history-detail')
+                        .forEach(div => div.classList.add('d-none'));
+
+                // แสดงรายการที่เลือก
+                document.querySelector(target)
+                        .classList.remove('d-none');
+            });
+        });
+
+        var triggerEl = document.querySelectorAll('[data-bs-toggle="list"]')
+        triggerEl.forEach(function(el) {
+          el.addEventListener('shown.bs.tab', function (e) {
+            // Optional: scroll active item into view
+            e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          })
+        });
+
+        const deleteHistoryModal = document.getElementById('deleteHistoryModal');
+        deleteHistoryModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const historyId = button.getAttribute('data-id');
+            const historyDate = button.getAttribute('data-date');
+
+            const form = document.getElementById('deleteHistoryForm');
+            form.action = `/Customer/DeleteHistory/${historyId}`;
+
+            const dateText = document.getElementById('historyDateText');
+            dateText.textContent = historyDate;
+        });
+
+        function fillEditTreatmentModal(history) {
+            document.getElementById("editTreatmentId").value = history.id;
+            document.getElementById("editTreatmentDate").value = history.treatmentDate?.substring(0, 16);
+            document.getElementById("editTreatmentDetails").value = history.treatmentDetails;
+            document.getElementById("editEquipmentDetails").value = history.equipmentDetails || "";
+            document.getElementById("editTreatmentRights").value = history.treatmentRights;
+            document.getElementById("editDentistName").value = history.dentistName;
+        }
+
+        // เมื่อเปิด modal ดู X-ray
+        var viewModal = document.getElementById('viewXrayModal');
+        viewModal.addEventListener('show.bs.modal', function (event) {
+          var btn   = event.relatedTarget;
+          var src   = btn.getAttribute('data-image');
+          var modal = this;
+          modal.querySelector('#xrayPreview').src = src;
+          // optional: ปรับ title
+          modal.querySelector('.modal-title').textContent = 'ภาพเอ็กซ์เรย์ของ ' + btn.getAttribute('data-name');
+        });
+    </script>
+}

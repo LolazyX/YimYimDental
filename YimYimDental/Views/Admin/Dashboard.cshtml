@@ -1,0 +1,126 @@
+﻿@{
+    ViewData["Title"] = "แดชบอร์ด";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+<style>
+    .card-hover {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 1px solid rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+        .card-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+        }
+
+    .card-icon {
+        font-size: 2.2rem;
+        background: rgba(255,255,255,0.15);
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+
+    .card-title {
+        font-weight: 600;
+        letter-spacing: -0.5px;
+        font-size: 1.3rem;
+        color: rgba(255,255,255,0.95);
+    }
+
+    .card-value {
+        font-weight: 300;
+        letter-spacing: -1px;
+        color: rgba(255,255,255,0.95);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .card-unit {
+        color: rgba(255,255,255,0.8);
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row g-4">
+        <!-- Total Users Card - Full Width -->
+        <div class="col-12">
+            <div class="card border-0 shadow rounded-4 text-white card-hover h-100" style="background: linear-gradient(135deg, #4A6FC8 0%, #6B8DD6 100%);">
+                <div class="card-body py-4 text-center">
+                    <i class="fa-solid fa-users card-icon"></i>
+                    <h3 class="card-title mb-3">ผู้ใช้ทั้งหมด</h3>
+                    <h1 class="fw-bold display-4 mb-0 card-value">@ViewBag.TotalUsersCount</h1>
+                    <p class="mb-0 card-unit">คน</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admins + Dentists -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow rounded-4 text-white card-hover h-100" style="background: linear-gradient(135deg, #E74C3C 0%, #FF7F7F 100%);">
+                <div class="card-body py-4 text-center">
+                    <i class="fa-solid fa-user-secret card-icon"></i>
+                    <h3 class="card-title mb-3">แอดมิน</h3>
+                    <h1 class="fw-bold display-4 mb-0 card-value">@ViewBag.AdminCount</h1>
+                    <p class="mb-0 card-unit">คน</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow rounded-4 text-white card-hover h-100" style="background: linear-gradient(135deg, #27AE60 0%, #7FBF7F 100%);">
+                <div class="card-body py-4 text-center">
+                    <i class="fa-solid fa-user-doctor card-icon"></i>
+                    <h3 class="card-title mb-3">ทันตแพทย์</h3>
+                    <h1 class="fw-bold display-4 mb-0 card-value">@ViewBag.DentistCount</h1>
+                    <p class="mb-0 card-unit">คน</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Officers + Customers -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow rounded-4 text-white card-hover h-100" style="background: linear-gradient(135deg, #E67E22 0%, #FFB366 100%);">
+                <div class="card-body py-4 text-center">
+                    <i class="fa-solid fa-user-tie card-icon"></i>
+                    <h3 class="card-title mb-3">เจ้าหน้าที่</h3>
+                    <h1 class="fw-bold display-4 mb-0 card-value">@ViewBag.OfficerCount</h1>
+                    <p class="mb-0 card-unit">คน</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow rounded-4 text-white card-hover h-100" style="background: linear-gradient(135deg, #9B59B6 0%, #DDA0DD 100%);">
+                <div class="card-body py-4 text-center">
+                    <i class="fa-solid fa-user card-icon"></i>
+                    <h3 class="card-title mb-3">ลูกค้า</h3>
+                    <h1 class="fw-bold display-4 mb-0 card-value">@ViewBag.CustomerCount</h1>
+                    <p class="mb-0 card-unit">คน</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'เพิ่มผู้ใช้งานสำเร็จ',
+                            showConfirmButton: true,
+                            timer: 2000
+                        });
+            </text>
+        }
+    </script>
+}

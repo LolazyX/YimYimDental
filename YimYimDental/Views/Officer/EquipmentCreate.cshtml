@@ -1,0 +1,41 @@
+﻿@model YimYimDental.Models.Equipment
+
+@{
+    ViewData["Title"] = "เพิ่มอุปกรณ์";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-primary">เพิ่มอุปกรณ์</h4>
+        <a asp-controller="Officer" asp-action="Equipment" class="btn btn-success">
+            <i class="fa-solid fa-list me-2"></i> ดูรายการอุปกรณ์
+        </a>
+    </div>
+
+    <form asp-action="EquipmentCreate" method="post" class="bg-white p-4 rounded shadow-sm border">
+        <!-- ชื่ออุปกรณ์ -->
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label">ชื่ออุปกรณ์</label>
+            <input asp-for="Name" class="form-control" placeholder="ระบุชื่ออุปกรณ์ เช่น คีมถอนฟัน, กระจกตรวจฟัน" required />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <!-- ราคา -->
+        <div class="mb-3">
+            <label asp-for="Price" class="form-label">ราคา (บาท)</label>
+            <input asp-for="Price" class="form-control" placeholder="ระบุราคา เช่น 1000" required />
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk me-2"></i> บันทึกอุปกรณ์
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

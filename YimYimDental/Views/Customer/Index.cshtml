@@ -1,0 +1,108 @@
+﻿@model IEnumerable<YimYimDental.Models.Customer>
+
+@{
+    ViewData["Title"] = "รายชื่อลูกค้า";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Header พร้อมช่องค้นหา -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+        <h4 class="text-primary mb-3 mb-md-0">รายชื่อลูกค้า</h4>
+        <div class="d-flex">
+            <form class="d-flex" method="get" asp-action="Index" asp-controller="Customer">
+                <input type="text" name="search" class="form-control me-2" placeholder="ค้นหาด้วยเลข HN..." />
+                <button type="submit" class="btn btn-outline-primary">ค้นหา</button>
+            </form>
+            <a asp-controller="Officer" asp-action="CustomerCreate" class="btn btn-success ms-3">
+                <i class="fa-solid fa-user-plus me-2"></i> เพิ่มลูกค้า
+            </a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning text-center" role="alert">
+            ไม่พบข้อมูลลูกค้า
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle bg-white shadow-sm">
+                <thead class="table-primary text-center">
+                    <tr>
+                        <th>ลำดับ</th>
+                        <th>HN</th>
+                        <th>ชื่อ-สกุล</th>
+                        <th>เพศ</th>
+                        <th>อายุ</th>
+                        <th>การจัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var customer in Model.Select((c, i) => new { c, Index = i + 1 }))
+                    {
+                        var birthDate = customer.c.DateOfBirth;
+                        var age = birthDate != null ?
+                        (int)((DateTime.Now - birthDate.Value).TotalDays / 365.25) : 0;
+
+                        <tr>
+                            <td class="text-center">@customer.Index</td>
+                            <td class="text-center">@customer.c.HN</td>
+                            <td>@customer.c.FullName</td>
+                            <td class="text-center">@customer.c.Gender</td>
+                            <td class="text-center">@age ปี</td>
+                            <td class="text-center">
+                                <a href="@Url.Action("Details", "Customer", new { id = customer.c.Id })" class="btn btn-sm btn-info me-2">
+                                    <i class="fa-solid fa-circle-info me-1"></i>รายละเอียด
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'เพิ่มข้อมูลลูกค้าสำเร็จ',
+                        showConfirmButton: true,
+                        timer: 2000
+                    });
+            </text>
+        }
+
+
+        @if (TempData["DuplicateHN"] != null)
+        {
+            <text>
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'HN ซ้ำ',
+                            text: 'มีผู้ใช้ที่มี HN นี้ในระบบอยู่แล้ว',
+                            confirmButtonText: 'ตกลง'
+                        });
+            </text>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'เกิดข้อผิดพลาด',
+                                text: 'โปรดลองใหม่อีกครั้ง',
+                                confirmButtonText: 'ตกลง'
+                            });
+            </text>
+        }
+    </script>
+}

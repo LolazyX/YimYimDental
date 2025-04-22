@@ -1,0 +1,279 @@
+﻿@model IEnumerable<YimYimDental.Models.TreatmentQueue>
+
+@{
+    ViewData["Title"] = "คิวการรักษา";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-primary">คิวการรักษา</h4>
+        <div class="d-flex align-items-center gap-2">
+            <!-- วันที่เลือก -->
+            <form asp-action="Index" method="get" class="d-flex align-items-center gap-2">
+                <div class="position-relative">
+                    <input type="date"
+                    name="date"
+                    id="dateInput"
+                    class="form-control border-2 py-2"
+                    style="width: 220px; font-size: 1rem;"
+                    value="@(ViewBag.SelectedDate)" 
+                    onchange="this.form.submit();" />
+                </div>
+
+                <!-- ปุ่มวันนี้ -->
+                <button type="button"
+                id="todayBtn"
+                class="btn btn-primary text-white d-flex align-items-center"
+                onclick="setToday()">
+                    <i class="fa-solid fa-clock pe-2"></i>
+                    วันนี้
+                </button>
+            </form>
+
+            @{
+                if (ViewBag.Role != "Dentist") {
+                    <a asp-action="Create" asp-controller="Queue" class="btn btn-success">
+                        <i class="fa-solid fa-plus pe-2"></i> เพิ่มคิว
+                    </a>
+                }
+            }
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning text-center">
+            ยังไม่มีคิวการรักษา
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle bg-white shadow-sm">
+                <thead class="table-primary text-center">
+                    <tr>
+                        <th>ลำดับคิว</th>
+                        <th>ชื่อลูกค้า</th>
+                        <th>อาการเบื้องต้น</th>
+                        <th>เวลานัดหมาย</th>
+                        <th>สถานะ</th>
+                        @{
+                            if (ViewBag.Role == "Dentist")
+                            {
+                                <th>ประวัติ</th>
+                            } else
+                            {
+                                <th>การจัดการ</th>
+                            }
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var number = 0;
+                    }
+                    @foreach (var item in Model)
+                    {                 
+                        number++;
+                        <tr>
+                            <td class="text-center">@number</td>
+                            <td>@item.Customer?.FullName</td>
+                            <td>@item.PreliminarySymptoms</td>
+                            <td class="text-center">@item.AppointmentTime.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-center">
+                                @if (item.Status == "รอรักษา")
+                                {
+                                    <span class="badge bg-warning text-dark">@item.Status</span>
+                                }
+                                else if (item.Status == "กำลังรักษา")
+                                {
+                                    <span class="badge bg-primary">@item.Status</span>
+                                }
+                                else if (item.Status == "รักษาเสร็จแล้ว")
+                                {
+                                    <span class="badge bg-success">@item.Status</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@item.Status</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @{
+                                    if (ViewBag.Role != "Dentist"){
+                                        <form asp-action="UpdateStatus" asp-controller="Queue" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <select name="status" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
+                                                @foreach (var opt in new[] { "รอรักษา", "กำลังรักษา", "รักษาเสร็จแล้ว" })
+                                                {
+                                                    if (opt == item.Status)
+                                                    {
+                                                        <option value="@opt" selected="selected">@opt</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@opt">@opt</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </form>
+                                    }
+                                }
+
+                                <a href="@Url.Action("Details", "Customer", new { id = item.CustomerId, Queue = item.Id })">
+                                    <button class="btn btn-sm btn-info">
+                                        <i class="fa-solid fa-circle-info"></i> รายละเอียด
+                                    </button>
+                                </a>
+
+                                @{
+                                    if (ViewBag.Role != "Dentist")
+                                    {
+								
+                                        <button class="btn btn-sm btn-warning"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editQueueModal"
+                                                data-id="@item.Id"
+                                                data-customerid="@item.CustomerId"
+                                                data-customername="@item.Customer?.FullName"
+                                                data-queuenumber="@item.QueueNumber"
+                                                data-status="@item.Status"
+                                                data-appointment="@item.AppointmentTime.ToString("yyyy-MM-ddTHH:mm")">
+                                            <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไข
+                                        </button>
+                                        <button class="btn btn-sm btn-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteQueueModal"
+                                                data-id="@item.Id"
+                                                data-name="@item.Customer?.FullName">
+                                            <i class="fa-solid fa-trash me-1"></i> ลบ
+                                        </button>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+
+<div class="modal fade" id="editQueueModal" tabindex="-1" aria-labelledby="editQueueModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">แก้ไขคิว</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editQueueForm" method="post">
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()          
+                    <input type="hidden" name="Id" id="editQueueId" />
+                    <input type="hidden" name="CustomerId" id="editCustomerId" />
+                    <input type="hidden" name="QueueNumber" id="editQueueNumber" />
+                    <div class="mb-3">
+                        <label class="form-label">ชื่อผู้ป่วย</label>
+                        <input type="text" class="form-control" id="editCustomerName" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">เวลานัดหมาย</label>
+                        <input type="datetime-local" class="form-control" name="AppointmentTime" id="editAppointmentTime" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">สถานะ</label>
+                        <select class="form-select" name="Status" id="editStatus">
+                            <option value="รอรักษา">รอรักษา</option>
+                            <option value="กำลังรักษา">กำลังรักษา</option>
+                            <option value="รักษาเสร็จแล้ว">รักษาเสร็จแล้ว</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning text-dark">บันทึกการแก้ไข</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="deleteQueueModal" tabindex="-1" aria-labelledby="deleteQueueModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">ยืนยันการลบคิว</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                คุณต้องการลบคิวของ <strong id="deleteCustomerName"></strong> ใช่หรือไม่?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteQueueForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">ลบ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+          // ตั้งค่าวันนี้เมื่อคลิกปุ่ม
+        document.getElementById('todayBtn').addEventListener('click', function() {
+                    // รับวันที่ปัจจุบันและแปลงเป็นปี พ.ศ.
+                    var today = new Date();
+                    var year = today.getFullYear();
+                    var month = String(today.getMonth() + 1).padStart(2, '0'); // เดือนเริ่มที่ 0 จึงต้อง +1
+                    var day = String(today.getDate()).padStart(2, '0');
+                    var thaiDate = year + '-' + month + '-' + day; // รูปแบบ yyyy-MM-dd
+
+                    var dateInput = document.getElementById('dateInput');
+                    dateInput.value = thaiDate;
+                    this.closest('form').submit();
+        });
+
+        const editModal = document.getElementById('editQueueModal');
+        editModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+
+         
+            document.getElementById('editQueueId').value = button.getAttribute('data-id');
+			document.getElementById('editQueueNumber').value = button.getAttribute('data-queuenumber');
+            document.getElementById('editCustomerId').value = button.getAttribute('data-customerid');
+            document.getElementById('editCustomerName').value = button.getAttribute('data-customername');
+            document.getElementById('editAppointmentTime').value = button.getAttribute('data-appointment');
+            document.getElementById('editStatus').value = button.getAttribute('data-status');
+
+            document.getElementById('editQueueForm').action = `/Queue/Edit/${button.getAttribute('data-id')}`;
+        });
+
+        const deleteModal = document.getElementById('deleteQueueModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+
+            const name = button.getAttribute('data-name');
+            document.getElementById('deleteCustomerName').textContent = name;
+            document.getElementById('deleteQueueForm').action = `/Queue/Delete/${button.getAttribute('data-id')}`;
+        });
+
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: '@TempData["Success"]',
+                    confirmButtonText: 'ตกลง',
+                    timer: 2000
+                });
+            </text>
+        }
+    </script>
+}

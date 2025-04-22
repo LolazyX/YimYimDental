@@ -1,0 +1,94 @@
+﻿@model YimYimDental.Models.TreatmentQueue
+
+@{
+    ViewData["Title"] = "เพิ่มคิวการรักษา";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<!-- CSS สำหรับ Select2 ที่กลมกลืนกับ Bootstrap -->
+<style>
+    .select2-container--default .select2-selection--single {
+        height: calc(2.25rem + 2px);
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 1.5;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 100%;
+            right: 10px;
+        }
+
+    .select2-container {
+        width: 100% !important;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-primary">เพิ่มคิวการรักษา</h4>
+        <a asp-controller="Queue" asp-action="Index" class="btn btn-success">
+            <i class="fa-solid fa-eye me-2"></i> ดูคิวทั้งหมด
+        </a>
+    </div>
+
+    <form asp-controller="Queue" asp-action="Create" method="post" class="bg-white p-4 rounded shadow-sm border">
+        <!-- ค้นหาลูกค้าจากเลข HN -->
+        <div class="mb-3">
+            <label asp-for="CustomerId" class="form-label">เลือกลูกค้า (ค้นหาจากเลข HN)</label>
+            <select id="customerSelect" name="CustomerId" class="form-select" required>
+                <option value="">-- ค้นหาลูกค้า --</option>
+                @foreach (var customer in (IEnumerable<YimYimDental.Models.Customer>)ViewBag.Customers)
+                {
+                    <!option value="@customer.Id" 
+                            @(customer.HN == ViewBag.CustomerHN ? "selected" : "")>
+                        @customer.HN - @customer.FullName
+                    </!option>
+                }
+            </select>
+            <span asp-validation-for="CustomerId" class="text-danger"></span>
+        </div>
+
+        <!-- เวลานัดหมาย -->
+        <div class="mb-3">
+            <label asp-for="AppointmentTime" class="form-label">เวลานัดหมาย</label>
+            <input asp-for="AppointmentTime" type="datetime-local" class="form-control" required />
+            <span asp-validation-for="AppointmentTime" class="text-danger"></span>
+        </div>
+
+        <!-- ซ่อนฟิลด์สถานะ (ค่า default คือ "รอรักษา") -->
+        <input type="hidden" asp-for="Status" value="รอรักษา" />
+
+        <!-- ช่องกรอกอาการเบื้องต้น -->
+        <div class="mb-3">
+            <label asp-for="PreliminarySymptoms" class="form-label">อาการเบื้องต้น</label>
+            <textarea class="form-control" asp-for="PreliminarySymptoms" rows="3" placeholder="ระบุอาการเบื้องต้น"></textarea>
+            <span asp-validation-for="PreliminarySymptoms" class="text-danger"></span>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk me-2"></i> บันทึกคิว
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            $('#customerSelect').select2({
+                placeholder: "-- ค้นหาลูกค้า --",
+                allowClear: true,
+                width: '100%'
+            });
+        });
+    </script>
+}

@@ -1,0 +1,124 @@
+﻿@model YimYimDental.Models.Customer
+
+@{
+    ViewData["Title"] = "เพิ่มลูกค้า";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-primary">เพิ่มลูกค้า</h4>
+        <a asp-controller="Customer" asp-action="Index" class="btn btn-success">
+            <i class="fa-solid fa-eye me-2"></i> ดูรายชื่อลูกค้า
+        </a>
+    </div>
+
+    <form asp-controller="Customer" asp-action="Create" method="post" class="bg-white p-4 rounded shadow-sm border">
+        <h5 class="mb-3 border-bottom pb-2 text-secondary">ข้อมูลส่วนตัว</h5>
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label asp-for="FullName" class="form-label">ชื่อ-นามสกุล</label>
+                <input type="text" class="form-control" asp-for="FullName" placeholder="นางสาว สมหมาย ใจดี" required>
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="HN" class="form-label">HN (6 หลัก)</label>
+                <input type="text" class="form-control" asp-for="HN" maxlength="6" placeholder="123456" required>
+                <span asp-validation-for="HN" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="NationalId" class="form-label">เลขบัตรประชาชน</label>
+                <input type="text" class="form-control" asp-for="NationalId" maxlength="13" placeholder="1103701234567" required>
+                <span asp-validation-for="NationalId" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="DateOfBirth" class="form-label">วันเกิด</label>
+                <input type="date" class="form-control" asp-for="DateOfBirth" id="dob" required>
+                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">อายุ (ปี)</label>
+                <input type="text" class="form-control bg-light" id="age" disabled>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="Gender" class="form-label">เพศ</label>
+                <select asp-for="Gender" class="form-select">
+                    <option value="">-- เลือกเพศ --</option>
+                    <option>ชาย</option>
+                    <option>หญิง</option>
+                    <option>อื่น ๆ</option>
+                </select>
+                <span asp-validation-for="Gender" class="text-danger"></span>
+            </div>
+        </div>
+
+        <h5 class="mt-4 mb-3 border-bottom pb-2 text-secondary">ข้อมูลติดต่อ</h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="Phone" class="form-label">เบอร์มือถือ</label>
+                <input type="tel" class="form-control" asp-for="Phone" maxlength="10" placeholder="0812345678">
+                <span asp-validation-for="Phone" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="Email" class="form-label">อีเมล (ถ้ามี)</label>
+                <input type="email" class="form-control" asp-for="Email" placeholder="example@domain.com">
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="Address" class="form-label">ที่อยู่</label>
+                <textarea class="form-control" asp-for="Address" rows="1" placeholder="123 หมู่ 4 ต.ในเมือง อ.เมือง จ.กรุงเทพฯ"></textarea>
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+        </div>
+
+        <h5 class="mt-4 mb-3 border-bottom pb-2 text-secondary">ข้อมูลสุขภาพ</h5>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="ChronicDiseases" class="form-label">โรคประจำตัว</label>
+                <textarea class="form-control" asp-for="ChronicDiseases" rows="2" placeholder="เบาหวาน, ความดัน, ..."></textarea>
+                <span asp-validation-for="ChronicDiseases" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Allergies" class="form-label">ประวัติการแพ้ยา/อาหาร</label>
+                <textarea class="form-control" asp-for="Allergies" rows="2" placeholder="แพ้เพนนิซิลลิน, ถั่วลิสง, ..."></textarea>
+                <span asp-validation-for="Allergies" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="col-12 text-end mt-4">
+            <button type="submit" class="btn btn-primary px-4 py-2">
+                <i class="fa-solid fa-floppy-disk me-2"></i>บันทึกข้อมูล
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function calculateAge(dateString) {
+            const today = new Date();
+            const birthDate = new Date(dateString);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        document.getElementById('dob').addEventListener('change', function () {
+            const dob = this.value;
+            const age = calculateAge(dob);
+            document.getElementById('age').value = age > 0 ? age : '';
+        });
+    </script>
+}

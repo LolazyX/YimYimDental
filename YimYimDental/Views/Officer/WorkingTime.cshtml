@@ -1,0 +1,192 @@
+﻿@{
+    ViewData["Title"] = "ตารางงานทันตแพทย์";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<style>
+    #calendar {
+        max-width: 100%;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    /* ปรับความกว้างของคอลัมน์ header */
+    .fc-col-header-cell {
+        min-width: 150px;
+    }
+
+    /* สไตล์สำหรับ event */
+    .fc-event {
+        margin-bottom: 5px !important;
+    }
+
+    .custom-event {
+        background-color: #e9f7ef;
+        border-left: 5px solid #28a745;
+        border-radius: 4px;
+        padding: 6px 8px;
+    }
+
+    .custom-event-title {
+        font-weight: bold;
+        font-size: 0.9rem;
+        color: #343a40;
+        flex-grow: 1;
+        padding-right: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .custom-event-buttons .btn {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+        border: none;
+        background: transparent;
+    }
+
+        .custom-event-buttons .btn:hover {
+            color: #dc3545;
+        }
+
+    .tooltip.custom-tooltip .tooltip-inner {
+        background-color: #343a40;
+        color: #fff;
+        font-size: 0.85rem;
+        border-radius: 6px;
+        padding: 6px 10px;
+    }
+
+    .tooltip.custom-tooltip.bs-tooltip-top .tooltip-arrow::before {
+        border-top-color: #343a40;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-primary mb-0">ตารางงานทันตแพทย์</h4>
+        <a asp-controller="Officer" asp-action="WorkingTimeCreate" class="btn btn-success">
+            <i class="fa-solid fa-plus me-2"></i> เพิ่มเวลาการทำงาน
+        </a>
+    </div>
+
+    <div id="calendar"></div>
+</div>
+
+<!-- Modal สำหรับลบเวลาการทำงาน -->
+<div class="modal fade" id="deleteWorkingTimeModal" tabindex="-1" aria-labelledby="deleteWorkingTimeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteWorkingTimeModalLabel">ยืนยันการลบเวลาการทำงาน</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                คุณต้องการลบเวลาการทำงานของทันตแพทย์ <strong id="deleteDentistName"></strong> ใช่หรือไม่?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteWorkingTimeForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">ลบ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarEl = document.getElementById('calendar');
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                themeSystem: 'bootstrap5',
+                initialView: 'timeGridWeek',
+                locale: 'th',
+                firstDay: 0,
+                allDayText: 'ตลอดวัน',
+                allDaySlot: false,
+                height: 'auto',
+                slotEventOverlap: false,
+                eventOverlap: false,
+                eventDisplay: 'block',
+
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'timeGridWeek,timeGridDay'
+                },
+                selectable: false,
+                editable: false,
+                events: '/Officer/GetWorkingTimes',
+
+                dateClick: function(info) {
+                    calendar.changeView('timeGridDay', info.date);
+                },
+
+                eventContent: function(arg) {
+                    let container = document.createElement('div');
+                    container.classList.add('custom-event', 'p-2');
+
+                    let headerRow = document.createElement('div');
+                    headerRow.classList.add('d-flex', 'justify-content-between', 'align-items-center');
+
+                    let titleEl = document.createElement('div');
+                    titleEl.classList.add('custom-event-title');
+                    titleEl.innerText = arg.event.title;
+                    titleEl.setAttribute('title', arg.event.title); // <-- เพิ่ม title
+
+                    // สร้าง tooltip Bootstrap
+                    setTimeout(() => {
+                        new bootstrap.Tooltip(titleEl, {
+                            placement: 'top',
+                            trigger: 'hover',
+                            customClass: 'custom-tooltip'
+                        });
+                    }, 0); // ต้องใช้ setTimeout เพื่อให้ DOM สร้างเสร็จก่อน
+
+                    let deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn btn-sm btn-outline-danger px-2 py-0';
+                    deleteBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                    deleteBtn.setAttribute('data-bs-toggle', 'modal');
+                    deleteBtn.setAttribute('data-bs-target', '#deleteWorkingTimeModal');
+                    deleteBtn.setAttribute('data-id', arg.event.id);
+                    deleteBtn.setAttribute('data-dentist', arg.event.title);
+
+                    headerRow.appendChild(titleEl);
+                    headerRow.appendChild(deleteBtn);
+
+                    container.appendChild(headerRow);
+                    return { domNodes: [container] };
+                }
+
+            });
+
+            calendar.render();
+
+            const deleteModal = document.getElementById('deleteWorkingTimeModal');
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                document.getElementById('deleteDentistName').textContent = button.getAttribute('data-dentist');
+                document.getElementById('deleteWorkingTimeForm').action = '/Officer/WorkingTimeDelete/' + button.getAttribute('data-id');
+            });
+        });
+
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'เพิ่มเวลาการทำงานของแพทย์สำเร็จ',
+                        showConfirmButton: true,
+                        timer: 2000
+                    });
+            </text>
+        }
+    </script>
+}

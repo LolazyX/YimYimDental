@@ -1,0 +1,160 @@
+﻿@model IEnumerable<YimYimDental.Models.Xray>
+
+@{
+    ViewData["Title"] = "เอ็กซ์เรย์";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Header พร้อมปุ่มอัปโหลดใหม่ -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+        <h4 class="text-primary mb-3 mb-md-0">เอ็กซ์เรย์</h4>
+        <div class="d-flex">
+            <form class="d-flex" method="get" asp-action="Index" asp-controller="Xray">
+                <input type="text" name="search" class="form-control me-2" placeholder="ค้นหาด้วยเลข HN..." />
+                <button type="submit" class="btn btn-outline-primary">ค้นหา</button>
+            </form>
+            <a asp-controller="Xray" asp-action="Create" class="btn btn-success ms-3">
+                <i class="fa-solid fa-upload me-2"></i> อัปโหลดเอ็กซ์เรย์ใหม่
+            </a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            ยังไม่มีข้อมูลเอ็กซ์เรย์
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle bg-white shadow-sm">
+                <thead class="table-primary text-center">
+                    <tr>
+                        <th>ลำดับ</th>
+                        <th>HN</th>
+                        <th>ชื่อ‑นามสกุล</th>
+                        <th>วันที่อัปโหลด</th>
+                        <th>การจัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Select((x, i) => new { x, Index = i + 1 }))
+                    {
+                        <tr>
+                            <td class="text-center">@item.Index</td>
+                            <td class="text-center">@item.x.Customer.HN</td>
+                            <td>@item.x.Customer.FullName</td>
+                            <td class="text-center">
+                                @item.x.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center">
+                                    <button type="button"
+                                            class="btn btn-sm btn-info me-2"
+                                            title="ดูรูปขนาดเต็ม"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#viewXrayModal"
+                                            data-image="@item.x.ImagePath"
+                                            data-name="@item.x.Customer.FullName">
+                                        <i class="fa-solid fa-eye me-1"></i> ดู
+                                    </button>
+                                    <form asp-controller="Xray"
+                                          asp-action="Delete"
+                                          asp-route-id="@item.x.Id"
+                                          method="post"
+                                          onsubmit="return confirm('ต้องการลบรูปเอ็กซ์เรย์นี้หรือไม่?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="button"
+                                                class="btn btn-sm btn-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteXrayModal"
+                                                data-id="@item.x.Id"
+                                                data-name="@item.x.Customer.FullName">
+                                            <i class="fa-solid fa-trash me-1"></i> ลบ
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="viewXrayModal" tabindex="-1" aria-labelledby="viewXrayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="viewXrayModalLabel">ภาพเอ็กซ์เรย์</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="xrayPreview" src="" class="img-fluid rounded shadow" alt="X-ray Image" />
+                <div class="mt-2 text-muted" id="xrayCustomerName"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteXrayModal" tabindex="-1" aria-labelledby="deleteXrayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">ยืนยันการลบเอ็กซ์เรย์</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                คุณต้องการลบเอ็กซ์เรย์ของ <strong id="deleteCustomerName"></strong> ใช่หรือไม่?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteXrayForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">ลบ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        $('#deleteXrayModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var id = button.data('id');
+            var name = button.data('name');
+
+            var modal = $(this);
+            modal.find('#deleteCustomerName').text(name);
+            modal.find('#deleteXrayForm').attr('action', '/Xray/Delete/' + id);
+        });
+
+        $('#viewXrayModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var image = button.data('image');
+            var name = button.data('name');
+
+            var modal = $(this);
+            modal.find('#xrayPreview').attr('src', image);
+            modal.find('#xrayCustomerName').text(name);
+        });
+
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: '@TempData["Success"]',
+                        confirmButtonText: 'ตกลง',
+                        timer: 2000
+                    });
+            </text>
+        }
+    </script>
+}
+

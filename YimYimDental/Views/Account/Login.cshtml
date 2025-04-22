@@ -1,0 +1,38 @@
+﻿
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center"
+     style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
+    <div class="card p-4 shadow-sm" style="width: 400px;">
+        <h3 class="text-center text-primary">คลินิกฟันยิมยิ้ม</h3>
+        <p class="text-center mb-4">เข้าสู่ระบบ</p>
+
+        <!-- แสดงข้อความผิดพลาด (ถ้ามี) -->
+        @if (ViewData.ModelState.ErrorCount > 0)
+        {
+            <div class="alert alert-danger text-center" role="alert">
+                @ViewData.ModelState[""].Errors[0].ErrorMessage
+            </div>
+        }
+
+        <form asp-action="Login" method="post">
+            <div class="form-group mb-3">
+                <input type="text" name="email" class="form-control" placeholder="ชื่อผู้ใช้" required />
+            </div>
+            <div class="form-group mb-3">
+                <input type="password" name="password" class="form-control" placeholder="รหัสผ่าน" required />
+            </div>
+            <div class="d-grid mb-3">
+                <button type="submit" class="btn btn-primary btn-block">เข้าสู่ระบบ</button>
+            </div>
+        </form>
+        <div class="text-center">
+            <small>หากคุณยังไม่มีบัญชี โปรดติดต่อแอดมิน</small>
+        </div>
+    </div>
+</div>
+
+
+
