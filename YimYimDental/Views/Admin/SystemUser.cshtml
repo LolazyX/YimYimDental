@@ -1,0 +1,214 @@
+﻿@model IEnumerable<UserViewModel>
+@{
+    ViewData["Title"] = "รายชื่อผู้ใช้งานระบบ";
+    Layout = "~/Views/Shared/_LayoutSidebar.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+       <h4 class="text-primary mb-0">รายชื่อผู้ใช้งานระบบ</h4>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <!-- ฟอร์มค้นหา -->
+            <form class="d-flex" method="get" asp-action="SystemUser" asp-controller="Admin">
+                <input type="text" name="search" class="form-control me-2" placeholder="ค้นหาด้วยชื่อ/อีเมล" value="@ViewBag.Search" />
+                <select name="roleFilter" class="form-select me-2">
+                    <option value="">ทั้งหมด</option>
+                    <option value="Dentist" selected="@(ViewBag.RoleFilter == "Dentist" ? "selected" : null)">ทันตแพทย์</option>
+                    <option value="Officer" selected="@(ViewBag.RoleFilter == "Officer" ? "selected" : null)">เจ้าหน้าที่</option>
+                </select>
+                <button type="submit" class="btn btn-outline-primary me-2">ค้นหา</button>
+            </form>
+
+            <!-- ปุ่มเพิ่มผู้ใช้งาน -->
+            <a asp-action="CreateUser" asp-controller="Admin" class="btn btn-primary">
+                <i class="fa-solid fa-user-plus me-2"></i>  เพิ่มผู้ใช้งาน
+            </a>
+
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning text-center" role="alert">
+            ไม่พบข้อมูลผู้ใช้งาน
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle bg-white shadow-sm">
+                <thead class="table-primary text-center">
+                    <tr>
+                        <th>ลำดับ</th>
+                        <th>ชื่อ-สกุล</th>
+                        <th>อีเมล</th>
+                        <th>เบอร์โทร</th>
+                        <th>วันเกิด</th>
+                        <th>ตำแหน่ง</th>
+                        <th>ที่อยู่</th>
+                        <th>สิทธิ์</th>
+                        <th>จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Select((u, i) => new { u, Index = i + 1 }))
+                    {
+                        <tr>
+                            <td class="text-center">@user.Index</td>
+                            <td>@user.u.FullName</td>
+                            <td>@user.u.Email</td>
+                            <td>@user.u.Phone</td>
+                            <td>@user.u.DateOfBirth.ToString("dd/MM/yyyy")</td>
+                            <td>@user.u.Position</td>
+                            <td>@user.u.Address</td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill bg-@GetRoleBadgeColor(user.u.Role)">@user.u.Role</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center">
+                                    <a href="javascript:void(0);" class="btn btn-sm btn-warning me-2 p-2" data-bs-toggle="modal" data-bs-target="#editUserModal" data-id="@user.u.Id" data-fullname="@user.u.FullName" data-email="@user.u.Email" data-phone="@user.u.Phone" data-dob="@user.u.DateOfBirth.ToString("yyyy-MM-dd")" data-position="@user.u.Position" data-address="@user.u.Address" data-password="@user.u.Password" data-role="@user.u.Role">
+                                        <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไข
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal" data-id="@user.u.Id" data-name="@user.u.FullName" title="ลบ">
+                                        <i class="fa-solid fa-trash me-1"></i> ลบ
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="editUserModalLabel">แก้ไขผู้ใช้งาน</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+            </div>
+            <form id="editForm" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="editId" name="Id" />
+                <div class="modal-body">
+                    <!-- ฟิลด์ต่างๆ เหมือนใน Create/Edit -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editName" class="form-label">ชื่อ-สกุล</label>
+                                <input type="text" class="form-control" id="editName" name="FullName" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editDob" class="form-label">วันเกิด</label>
+                                <input type="date" class="form-control" id="editDob" name="DateOfBirth" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">อีเมล</label>
+                        <input type="email" class="form-control" id="editEmail" name="Email" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPhone" class="form-label">เบอร์โทร</label>
+                        <input type="text" class="form-control" id="editPhone" name="Phone" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPosition" class="form-label">ตำแหน่ง</label>
+                        <input type="text" class="form-control" id="editPosition" name="Position" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editAddress" class="form-label">ที่อยู่</label>
+                        <textarea class="form-control" id="editAddress" name="Address"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label">รหัสผ่าน</label>
+                        <input type="password" class="form-control" id="editPassword" name="Password" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRole" class="form-label">สิทธิ์</label>
+                        <select class="form-select" id="editRole" name="Role" required>
+                            <option value="Dentist">Dentist</option>
+                            <option value="Officer">Officer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning text-dark">บันทึก</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">ยืนยันการลบ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="ปิด"></button>
+            </div>
+            <div class="modal-body">
+                ต้องการลบ <strong id="userName"></strong> หรือไม่?
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">ลบ</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var editModal = document.getElementById('editUserModal');
+        editModal.addEventListener('show.bs.modal', function (event) {
+            var btn = event.relatedTarget;
+            var id = btn.getAttribute('data-id');
+            document.getElementById('editId').value = id;
+            document.getElementById('editName').value = btn.getAttribute('data-fullname');
+            document.getElementById('editEmail').value = btn.getAttribute('data-email');
+            document.getElementById('editPhone').value = btn.getAttribute('data-phone');
+            document.getElementById('editDob').value = btn.getAttribute('data-dob');
+            document.getElementById('editPosition').value = btn.getAttribute('data-position');
+            document.getElementById('editAddress').value = btn.getAttribute('data-address');
+            document.getElementById('editPassword').value = btn.getAttribute('data-password');
+            document.getElementById('editRole').value = btn.getAttribute('data-role');
+            document.getElementById('editForm').action = `/Admin/Edit/${id}`;
+        });
+
+        var delModal = document.getElementById('deleteConfirmModal');
+        delModal.addEventListener('show.bs.modal', function (event) {
+            var btn = event.relatedTarget;
+            var id = btn.getAttribute('data-id');
+            document.getElementById('userName').textContent = btn.getAttribute('data-name');
+            document.getElementById('deleteForm').action = `/Admin/Delete/${id}`;
+        });
+    </script>
+}
+
+@functions {
+    public string GetRoleBadgeColor(string role)
+    {
+        switch (role)
+        {
+            case "Dentist":
+                return "primary";   // สีฟ้า
+            case "Officer":
+                return "success";   // สีเขียว
+            default:
+                return "secondary"; // เทา
+        }
+    }
+}

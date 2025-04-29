@@ -108,19 +108,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        @if (TempData["Success"] != null)
-        {
-            <text>
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'เพิ่มผู้ใช้งานสำเร็จ',
-                            showConfirmButton: true,
-                            timer: 2000
-                        });
-            </text>
-        }
-    </script>
-}

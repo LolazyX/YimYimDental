@@ -14,21 +14,35 @@
     </div>
 
     <form asp-controller="Customer" asp-action="Create" method="post" class="bg-white p-4 rounded shadow-sm border">
+        @Html.AntiForgeryToken()
         <h5 class="mb-3 border-bottom pb-2 text-secondary">ข้อมูลส่วนตัว</h5>
         <div class="row g-3">
-            <div class="col-md-8">
+            <!-- คำนำหน้า -->
+            <div class="col-md-2">
+                <label asp-for="Prefix" class="form-label">คำนำหน้า</label>
+                <select asp-for="Prefix" class="form-select" required>
+                    <option value="">-- เลือก --</option>
+                    <option>นาย</option>
+                    <option>นาง</option>
+                    <option>นางสาว</option>
+                    <option>ด.ช.</option>
+                    <option>ด.ญ.</option>
+                </select>
+                <span asp-validation-for="Prefix" class="text-danger"></span>
+            </div>
+
+            <!-- ชื่อ-นามสกุล -->
+            <div class="col-md-6">
                 <label asp-for="FullName" class="form-label">ชื่อ-นามสกุล</label>
-                <input type="text" class="form-control" asp-for="FullName" placeholder="นางสาว สมหมาย ใจดี" required>
+                <input type="text"
+                       class="form-control"
+                       asp-for="FullName"
+                       placeholder="สมชาย ใจดี"
+                       required />
                 <span asp-validation-for="FullName" class="text-danger"></span>
             </div>
 
             <div class="col-md-4">
-                <label asp-for="HN" class="form-label">HN (6 หลัก)</label>
-                <input type="text" class="form-control" asp-for="HN" maxlength="6" placeholder="123456" required>
-                <span asp-validation-for="HN" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6">
                 <label asp-for="NationalId" class="form-label">เลขบัตรประชาชน</label>
                 <input type="text" class="form-control" asp-for="NationalId" maxlength="13" placeholder="1103701234567" required>
                 <span asp-validation-for="NationalId" class="text-danger"></span>

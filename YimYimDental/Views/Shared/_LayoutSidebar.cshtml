@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - YimYimDental</title>
     <script type="importmap"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/YimYimDental.styles.css" asp-append-version="true" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -40,14 +40,9 @@
                             <i class="fa-solid fa-gauge pe-2"></i> แดชบอร์ด
                         </a>
                     </li>
-                     <li class="nav-item">
-                        <a href="/Admin/Dentist" class="nav-link text-dark py-2">
-                            <i class="fa-solid fa-user-doctor pe-2"></i> ทันตแพทย์
-                        </a>
-                    </li>
-                     <li class="nav-item">
-                        <a href="/Admin/Officer" class="nav-link text-dark py-2">
-                            <i class="fa-solid fa-user-tie pe-2"></i> เจ้าหน้าที่ฝ่ายธุระการ
+                    <li class="nav-item">
+                        <a href="/Admin/SystemUser" class="nav-link text-dark py-2">
+                            <i class="fa-solid fa-user-tie pe-2"></i> รายชื่อผู้ใช้งานระบบ
                         </a>
                     </li>
                 }

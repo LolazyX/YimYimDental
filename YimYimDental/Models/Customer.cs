@@ -7,10 +7,14 @@ namespace YimYimDental.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
         [Display(Name = "HN")]
         [RegularExpression(@"^\d{6}$", ErrorMessage = "HN ต้องเป็นตัวเลข 6 หลัก")]
         public string HN { get; set; }
+
+
+        [Required]
+        [Display(Name = "คำนำหน้า")]
+        public string Prefix { get; set; }
 
         [Required]
         [Display(Name = "ชื่อ-นามสกุล")]

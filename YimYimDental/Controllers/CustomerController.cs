@@ -44,11 +44,22 @@ namespace YimYimDental.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Customer customer)
         {
-            if (_db.Customers.Any(c => c.HN == customer.HN))
+            // สร้าง HN อัตโนมัติ
+            var lastCustomer = _db.Customers
+                .OrderByDescending(c => c.Id)
+                .FirstOrDefault();
+
+            int lastHNNumber = 0;
+            if (lastCustomer != null && int.TryParse(lastCustomer.HN, out int parsedHN))
             {
-                TempData["DuplicateHN"] = true;
-                return RedirectToAction("Index");
+                lastHNNumber = parsedHN;
             }
+
+            int newHNNumber = lastHNNumber + 1;
+            customer.HN = newHNNumber.ToString("D6"); // เติม 0 ข้างหน้า เช่น 000001
+
+            // ลบ validation error ของ HN เพราะกำหนดเอง
+            ModelState.Remove(nameof(Customer.HN));
 
             if (ModelState.IsValid)
             {
@@ -58,8 +69,9 @@ namespace YimYimDental.Controllers
                 return RedirectToAction("Index");
             }
 
+            // ถ้ามี error ให้แสดงในฟอร์ม
             TempData["Error"] = true;
-            return RedirectToAction("Index");
+            return View(customer);
         }
 
         // GET: Customer/Edit/{id}

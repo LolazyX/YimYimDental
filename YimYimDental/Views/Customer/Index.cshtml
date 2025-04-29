@@ -34,9 +34,10 @@
                     <tr>
                         <th>ลำดับ</th>
                         <th>HN</th>
+                        <th>คำนำหน้า</th>
                         <th>ชื่อ-สกุล</th>
                         <th>เพศ</th>
-                        <th>อายุ</th>
+                        <th>อายุ (ปี)</th>
                         <th>การจัดการ</th>
                     </tr>
                 </thead>
@@ -50,9 +51,10 @@
                         <tr>
                             <td class="text-center">@customer.Index</td>
                             <td class="text-center">@customer.c.HN</td>
+                            <td class="text-center">@customer.c.Prefix</td>
                             <td>@customer.c.FullName</td>
                             <td class="text-center">@customer.c.Gender</td>
-                            <td class="text-center">@age ปี</td>
+                            <td class="text-center">@age</td>
                             <td class="text-center">
                                 <a href="@Url.Action("Details", "Customer", new { id = customer.c.Id })" class="btn btn-sm btn-info me-2">
                                     <i class="fa-solid fa-circle-info me-1"></i>รายละเอียด
