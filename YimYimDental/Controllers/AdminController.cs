@@ -48,58 +48,25 @@ namespace YimYimDental.Controllers
             return View();
         }
 
-        public IActionResult SystemUser(string? search, string? roleFilter)    
+        public IActionResult SystemUser(string? search, string? roleFilter)
         {
-            // เช็ค session Role ว่าเป็น Admin เท่านั้น
             var role = HttpContext.Session.GetString("Role");
-            var username = HttpContext.Session.GetString("Username");
             if (string.IsNullOrEmpty(role) || role != "Admin")
                 return RedirectToAction("AccessDenied", "Account");
 
-            // เริ่มด้วย query ผู้ใช้ที่ไม่ใช่ Admin
-            var usersQuery = _db.Users
-                .Where(u => u.Role != "Admin")
-                .AsQueryable();
-
-            // กรองด้วย search (FullName หรือ Email)
-            if (!string.IsNullOrEmpty(search))
-            {
-                usersQuery = usersQuery
-                    .Where(u => u.FullName.Contains(search) ||
-                                u.Email.Contains(search));
-            }
-
-            // กรองด้วยบทบาทที่เลือก (Dentist หรือ Officer)
-            if (!string.IsNullOrEmpty(roleFilter))
-            {
-                usersQuery = usersQuery
-                    .Where(u => u.Role == roleFilter);
-            }
-
-            // สร้าง ViewModel และสั่ง Order ตามชื่อ
-            var model = usersQuery
-                .OrderBy(u => u.FullName)
-                .Select(u => new UserViewModel
-                {
-                    Id = u.Id,
-                    FullName = u.FullName,
-                    Email = u.Email,
-                    Phone = u.Phone,
-                    DateOfBirth = u.DateOfBirth,
-                    Position = u.Position,
-                    Address = u.Address,
-                    Password = u.Password,
-                    Role = u.Role
-                })
-                .ToList();
-
-            // เก็บค่าที่กรองไว้ใน ViewBag เพื่อใช้แสดงในฟิลด์ฟอร์ม
-            ViewBag.Username = username;
-            ViewBag.Role = role;
             ViewBag.Search = search;
             ViewBag.RoleFilter = roleFilter;
+            ViewBag.Username = HttpContext.Session.GetString("Username");
+            ViewBag.Role = role;
 
-            return View(model);
+            var users = _db.Users
+                .Where(u => u.Role != "Admin")
+                .Where(u => string.IsNullOrEmpty(search) || u.FullName.Contains(search) || u.Email.Contains(search))
+                .Where(u => string.IsNullOrEmpty(roleFilter) || u.Role == roleFilter)
+                .OrderBy(u => u.FullName)
+                .ToList();
+
+            return View(users);
         }
 
         public IActionResult Create(string? roleType)
@@ -147,32 +114,44 @@ namespace YimYimDental.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, UserViewModel updatedUser)
         {
-            var role = HttpContext.Session.GetString("Role");
-            if (string.IsNullOrEmpty(role) || role != "Admin")
-                return RedirectToAction("AccessDenied", "Account");
+            // 1. ตรวจสิทธิ์เหมือนเดิม…
+            var userInDb = _db.Users.Find(id);
+            if (userInDb == null) return NotFound();
 
-            var userInDb = _db.Users.FirstOrDefault(u => u.Id == id);
-            if (userInDb == null)
-                return NotFound();
+            // 2. ถ้า Password field ว่าง ให้ลบ Validation นี้ออก
+            if (string.IsNullOrWhiteSpace(updatedUser.Password))
+            {
+                ModelState.Remove(nameof(updatedUser.Password));
+                ModelState.Remove(nameof(updatedUser.ConfirmPassword));
+            }
 
+            // 3. เช็ค ModelState อีกครั้ง
             if (ModelState.IsValid)
             {
-                // อัปเดตข้อมูล
+                // อัปเดตข้อมูลที่แก้ได้
                 userInDb.FullName = updatedUser.FullName;
                 userInDb.Email = updatedUser.Email;
                 userInDb.Phone = updatedUser.Phone;
-                userInDb.DateOfBirth = updatedUser.DateOfBirth;
-                userInDb.Position = updatedUser.Position;
                 userInDb.Address = updatedUser.Address;
-                userInDb.Password = updatedUser.Password;
                 userInDb.Role = updatedUser.Role;
 
-                _db.SaveChanges();
+                // 4. ถ้ามีการกรอกรหัสผ่านใหม่ จึงค่อยอัปเดต
+                if (!string.IsNullOrWhiteSpace(updatedUser.Password))
+                {
+                    userInDb.Password = updatedUser.Password;
+                }
 
+                _db.SaveChanges();
+                TempData["Success"] = true;
                 return RedirectToAction("SystemUser");
             }
 
-            return View("SystemUser", _db.Users.Where(u => u.Role == "Dentist").ToList());
+            // 5. ถ้าไม่ผ่าน ให้เก็บ error ไว้แจ้งผู้ใช้ (หรือ redirect กลับพร้อม ModelState)
+            TempData["EditError"] = ModelState.Values
+                                              .SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+            return RedirectToAction("SystemUser");
         }
 
         [HttpPost]

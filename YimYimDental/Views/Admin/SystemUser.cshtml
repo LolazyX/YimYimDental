@@ -6,14 +6,12 @@
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-
-       <h4 class="text-primary mb-0">รายชื่อผู้ใช้งานระบบ</h4>
-
+        <h4 class="text-primary mb-0">รายชื่อผู้ใช้งานระบบ</h4>
         <div class="d-flex justify-content-between align-items-center mb-3">
             <!-- ฟอร์มค้นหา -->
             <form class="d-flex" method="get" asp-action="SystemUser" asp-controller="Admin">
                 <input type="text" name="search" class="form-control me-2" placeholder="ค้นหาด้วยชื่อ/อีเมล" value="@ViewBag.Search" />
-                <select name="roleFilter" class="form-select me-2">
+                <select name="roleFilter" class="form-select me-2" onchange="this.form.submit()">
                     <option value="">ทั้งหมด</option>
                     <option value="Dentist" selected="@(ViewBag.RoleFilter == "Dentist" ? "selected" : null)">ทันตแพทย์</option>
                     <option value="Officer" selected="@(ViewBag.RoleFilter == "Officer" ? "selected" : null)">เจ้าหน้าที่</option>
@@ -22,10 +20,9 @@
             </form>
 
             <!-- ปุ่มเพิ่มผู้ใช้งาน -->
-            <a asp-action="CreateUser" asp-controller="Admin" class="btn btn-primary">
-                <i class="fa-solid fa-user-plus me-2"></i>  เพิ่มผู้ใช้งาน
+            <a asp-action="Create" asp-controller="Admin" class="btn btn-primary">
+                <i class="fa-solid fa-user-plus me-2"></i> เพิ่มผู้ใช้งาน
             </a>
-
         </div>
     </div>
 
@@ -45,30 +42,36 @@
                         <th>ชื่อ-สกุล</th>
                         <th>อีเมล</th>
                         <th>เบอร์โทร</th>
-                        <th>วันเกิด</th>
-                        <th>ตำแหน่ง</th>
                         <th>ที่อยู่</th>
                         <th>สิทธิ์</th>
                         <th>จัดการ</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var user in Model.Select((u, i) => new { u, Index = i + 1 }))
+                    @* แสดงรายการล่าสุดก่อนโดยใช้ Reverse() *@
+                    @foreach (var user in Model.Reverse().Select((u, i) => new { u, Index = i + 1 }))
                     {
                         <tr>
                             <td class="text-center">@user.Index</td>
                             <td>@user.u.FullName</td>
                             <td>@user.u.Email</td>
                             <td>@user.u.Phone</td>
-                            <td>@user.u.DateOfBirth.ToString("dd/MM/yyyy")</td>
-                            <td>@user.u.Position</td>
                             <td>@user.u.Address</td>
                             <td class="text-center">
                                 <span class="badge rounded-pill bg-@GetRoleBadgeColor(user.u.Role)">@user.u.Role</span>
                             </td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center">
-                                    <a href="javascript:void(0);" class="btn btn-sm btn-warning me-2 p-2" data-bs-toggle="modal" data-bs-target="#editUserModal" data-id="@user.u.Id" data-fullname="@user.u.FullName" data-email="@user.u.Email" data-phone="@user.u.Phone" data-dob="@user.u.DateOfBirth.ToString("yyyy-MM-dd")" data-position="@user.u.Position" data-address="@user.u.Address" data-password="@user.u.Password" data-role="@user.u.Role">
+                                    <a href="javascript:void(0);"
+                                       class="btn btn-sm btn-warning me-2 p-2"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#editUserModal"
+                                       data-id="@user.u.Id"
+                                       data-fullname="@user.u.FullName"
+                                       data-email="@user.u.Email"
+                                       data-phone="@user.u.Phone"
+                                       data-address="@user.u.Address"
+                                       data-role="@user.u.Role">
                                         <i class="fa-solid fa-pen-to-square me-1"></i> แก้ไข
                                     </a>
                                     <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal" data-id="@user.u.Id" data-name="@user.u.FullName" title="ลบ">
@@ -95,50 +98,65 @@
             <form id="editForm" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="editId" name="Id" />
+
                 <div class="modal-body">
-                    <!-- ฟิลด์ต่างๆ เหมือนใน Create/Edit -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="editName" class="form-label">ชื่อ-สกุล</label>
-                                <input type="text" class="form-control" id="editName" name="FullName" required />
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="editDob" class="form-label">วันเกิด</label>
-                                <input type="date" class="form-control" id="editDob" name="DateOfBirth" />
-                            </div>
-                        </div>
-                    </div>
+                    <!-- ชื่อ-นามสกุล -->
                     <div class="mb-3">
-                        <label for="editEmail" class="form-label">อีเมล</label>
-                        <input type="email" class="form-control" id="editEmail" name="Email" required />
+                        <label for="editFullName" class="form-label">ชื่อ-นามสกุล</label>
+                        <input type="text" class="form-control" id="editFullName" name="FullName" required />
                     </div>
-                    <div class="mb-3">
-                        <label for="editPhone" class="form-label">เบอร์โทร</label>
-                        <input type="text" class="form-control" id="editPhone" name="Phone" />
-                    </div>
-                    <div class="mb-3">
-                        <label for="editPosition" class="form-label">ตำแหน่ง</label>
-                        <input type="text" class="form-control" id="editPosition" name="Position" />
-                    </div>
+
                     <div class="mb-3">
                         <label for="editAddress" class="form-label">ที่อยู่</label>
                         <textarea class="form-control" id="editAddress" name="Address"></textarea>
                     </div>
+
                     <div class="mb-3">
-                        <label for="editPassword" class="form-label">รหัสผ่าน</label>
-                        <input type="password" class="form-control" id="editPassword" name="Password" required />
+                        <label for="editPhone" class="form-label">เบอร์โทร</label>
+                        <input type="text" class="form-control" id="editPhone" name="Phone" />
                     </div>
+
+                    <!-- Email + Change Password button -->
+                    <div class="row mb-3 align-items-end">
+                        <div class="col">
+                            <label for="editEmail" class="form-label">อีเมล</label>
+                            <input type="email" class="form-control" id="editEmail" name="Email" required />
+                        </div>
+                        <div class="col-auto" id="changePasswordWrapper">
+                            <button type="button" class="btn btn-outline-secondary" id="changePasswordBtn">
+                                เปลี่ยนรหัสผ่าน
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ฟิลด์รหัสผ่านใหม่ / ยืนยันรหัสผ่าน -->
+                    <div id="passwordFields" style="display: none;">
+                        <div class="mb-3">
+                            <label for="editPassword" class="form-label">รหัสผ่านใหม่</label>
+                            <input type="password"
+                                   class="form-control"
+                                   id="editPassword"
+                                   name="Password"
+                                   disabled
+                                   pattern="(?=.*[A-Za-z])(?=.*\d).{8,}"
+                                   title="รหัสผ่านต้องมีตัวอักษรและตัวเลขอย่างต่ำ 8 ตัว" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="editConfirmPassword" class="form-label">ยืนยันรหัสผ่าน</label>
+                            <input type="password" class="form-control" id="editConfirmPassword" name="ConfirmPassword" disabled />
+                        </div>
+                    </div>
+
+                    <!-- สิทธิ์ -->
                     <div class="mb-3">
                         <label for="editRole" class="form-label">สิทธิ์</label>
                         <select class="form-select" id="editRole" name="Role" required>
-                            <option value="Dentist">Dentist</option>
-                            <option value="Officer">Officer</option>
+                            <option value="Dentist">ทันตแพทย์</option>
+                            <option value="Officer">เจ้าหน้าที่ฝ่ายธุรการ</option>
                         </select>
                     </div>
                 </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-warning text-dark">บันทึก</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
@@ -172,29 +190,67 @@
 
 @section Scripts {
     <script>
+        // เตรียม Modal
         var editModal = document.getElementById('editUserModal');
         editModal.addEventListener('show.bs.modal', function (event) {
             var btn = event.relatedTarget;
             var id = btn.getAttribute('data-id');
             document.getElementById('editId').value = id;
-            document.getElementById('editName').value = btn.getAttribute('data-fullname');
+            document.getElementById('editFullName').value = btn.getAttribute('data-fullname');
             document.getElementById('editEmail').value = btn.getAttribute('data-email');
             document.getElementById('editPhone').value = btn.getAttribute('data-phone');
-            document.getElementById('editDob').value = btn.getAttribute('data-dob');
-            document.getElementById('editPosition').value = btn.getAttribute('data-position');
             document.getElementById('editAddress').value = btn.getAttribute('data-address');
-            document.getElementById('editPassword').value = btn.getAttribute('data-password');
             document.getElementById('editRole').value = btn.getAttribute('data-role');
             document.getElementById('editForm').action = `/Admin/Edit/${id}`;
+
+            // เคลียร์ & ปิดใช้ฟิลด์รหัสผ่าน
+            var pw = document.getElementById('editPassword');
+            var pwc = document.getElementById('editConfirmPassword');
+            pw.value = '';
+            pwc.value = '';
+            pw.disabled = true;
+            pwc.disabled = true;
+            document.getElementById('passwordFields').style.display = 'none';
+            document.getElementById('changePasswordWrapper').style.display = 'block';
         });
 
+        // เมื่อคลิกเปลี่ยนรหัสผ่าน
+        document.getElementById('changePasswordBtn').addEventListener('click', function () {
+            var pw = document.getElementById('editPassword');
+            var pwc = document.getElementById('editConfirmPassword');
+            pw.disabled = false;
+            pwc.disabled = false;
+            document.getElementById('passwordFields').style.display = 'block';
+            document.getElementById('changePasswordWrapper').style.display = 'none';
+        });
+
+        // ตรวจสอบรหัสผ่านก่อน submit
+        document.getElementById('editForm').addEventListener('submit', function (e) {
+            var pw = document.getElementById('editPassword');
+            var pwc = document.getElementById('editConfirmPassword');
+            if (!pw.disabled && pw.value !== pwc.value) {
+                e.preventDefault();
+                Swal.fire({ icon: 'error', title: 'รหัสผ่านไม่ตรงกัน', text: 'กรุณากรอกรหัสผ่านให้ตรงกัน' });
+            }
+        });
+
+        // Modal ลบ
         var delModal = document.getElementById('deleteConfirmModal');
         delModal.addEventListener('show.bs.modal', function (event) {
             var btn = event.relatedTarget;
-            var id = btn.getAttribute('data-id');
             document.getElementById('userName').textContent = btn.getAttribute('data-name');
-            document.getElementById('deleteForm').action = `/Admin/Delete/${id}`;
+            document.getElementById('deleteForm').action = `/Admin/Delete/${btn.getAttribute('data-id')}`;
         });
+
+        // แจ้งเตือนสำเร็จ/ซ้ำอีเมล
+        @if (TempData["Success"] != null)
+        {
+            <text>Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', showConfirmButton: false, timer: 2000 });</text>
+        }
+        @if (TempData["DuplicateEmail"] != null)
+        {
+            <text>Swal.fire({ icon: 'error', title: 'อีเมลนี้ถูกใช้แล้ว', text: 'กรุณาใช้อีเมลอื่น', confirmButtonText: 'ตกลง' });</text>
+        }
     </script>
 }
 
@@ -203,12 +259,9 @@
     {
         switch (role)
         {
-            case "Dentist":
-                return "primary";   // สีฟ้า
-            case "Officer":
-                return "success";   // สีเขียว
-            default:
-                return "secondary"; // เทา
+            case "Dentist": return "primary";
+            case "Officer": return "success";
+            default: return "secondary";
         }
     }
 }
