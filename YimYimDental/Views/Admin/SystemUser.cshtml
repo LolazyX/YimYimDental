@@ -65,7 +65,7 @@
                                     <a href="javascript:void(0);"
                                        class="btn btn-sm btn-warning me-2 p-2"
                                        data-bs-toggle="modal"
-                                       data-bs-target="#editUserModal"
+                                       data-bs-target="#editUserModal2"
                                        data-id="@user.u.Id"
                                        data-fullname="@user.u.FullName"
                                        data-email="@user.u.Email"
@@ -88,7 +88,7 @@
 </div>
 
 <!-- Edit Modal -->
-<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+<div class="modal fade" id="editUserModal2" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-warning text-dark">
@@ -108,12 +108,12 @@
 
                     <div class="mb-3">
                         <label for="editAddress" class="form-label">ที่อยู่</label>
-                        <textarea class="form-control" id="editAddress" name="Address"></textarea>
+                        <textarea class="form-control" id="editAddress" name="Address" required></textarea>
                     </div>
 
                     <div class="mb-3">
                         <label for="editPhone" class="form-label">เบอร์โทร</label>
-                        <input type="text" class="form-control" id="editPhone" name="Phone" />
+                        <input type="text" class="form-control" id="editPhone" name="Phone" required/>
                     </div>
 
                     <!-- Email + Change Password button -->
@@ -191,7 +191,7 @@
 @section Scripts {
     <script>
         // เตรียม Modal
-        var editModal = document.getElementById('editUserModal');
+        var editModal = document.getElementById('editUserModal2');
         editModal.addEventListener('show.bs.modal', function (event) {
             var btn = event.relatedTarget;
             var id = btn.getAttribute('data-id');

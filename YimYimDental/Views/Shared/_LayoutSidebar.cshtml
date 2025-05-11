@@ -22,9 +22,12 @@
 <body>
 
     @{
+		var id = Context.Session.GetString("Id");
 		var name = Context.Session.GetString("FullName");
         var username = Context.Session.GetString("Username");
         var role = Context.Session.GetString("Role");
+		var address = Context.Session.GetString("Address");
+		var phone = Context.Session.GetString("Phone");
     }
 
     <!-- Sidebar -->
@@ -79,11 +82,6 @@
                             <i class="fa-solid fa-toolbox pe-2"></i> อุปกรณ์ทั้งหมด
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="/Officer/Billing" class="nav-link text-dark py-2">
-                            <i class="fa-solid fa-calculator pe-2"></i> คำนวณค่าบริการ
-                        </a>
-                    </li>
 
                 }
                 else if (role == "Dentist")
@@ -98,21 +96,31 @@
                             <i class="fa-solid fa-x-ray pe-2"></i> เอ็กซ์เรย์
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="/Officer/Billing" class="nav-link text-dark py-2">
-                            <i class="fa-solid fa-calculator pe-2"></i> คำนวณค่าบริการ
-                        </a>
-                    </li>
                 }
             </ul>
         </div>
         <div class="sidebar-footer mt-auto border-top">
             <div class="p-2">
                 <button type="button"
+                        class="btn btn-secondary w-100"
+                        data-bs-toggle="modal"
+                        data-bs-target="#editUserModal"
+                        data-id1="@id"
+                        data-fullname1="@name"
+                        data-email1="@username"
+                        data-phone1="@phone"
+                        data-address1="@address"
+                        data-role1="@role">
+                    <i class="fa-solid fa-pencil me-3"></i>
+                    จัดการโปรไฟล์
+                </button>
+            </div>
+            <div class="p-2">
+                <button type="button"
                         class="btn btn-danger w-100"
                         data-bs-toggle="modal"
                         data-bs-target="#logoutModal">
-                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>
+                    <i class="fa-solid fa-arrow-right-from-bracket me-3"></i>
                     ออกจากระบบ
                 </button>
             </div>
@@ -147,10 +155,90 @@
 
     </div>
 
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mx-auto logout-layout">
+            <div class="modal-content border-0 shadow w-100">
+                <div class="modal-header bg-warning text-dark p-3">
+                    <h5 class="modal-title" id="editUserModalLabel">จัดการโปรไฟล์</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
+                </div>
+                <form id="editForm1" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="editId1" name="Id"/>
+
+                    <div class="modal-body p-3">
+                        <!-- ชื่อ-นามสกุล -->
+                        <div class="mb-3">
+                            <label for="editFullName" class="form-label">ชื่อ-นามสกุล</label>
+                            <input type="text" class="form-control p-2" id="editFullName1" name="FullName" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editAddress" class="form-label">ที่อยู่</label>
+                            <textarea class="form-control p-2" id="editAddress1" name="Address" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editPhone" class="form-label">เบอร์โทร</label>
+                            <input type="text" class="form-control p-2" id="editPhone1" name="Phone" required/>
+                        </div>
+
+                        <!-- Email + Change Password button -->
+                        <div class="row mb-3 align-items-end">
+                            <div class="col me-2">
+                                <label for="editEmail" class="form-label">อีเมล</label>
+                                <input type="email" class="form-control p-2" id="editEmail1" name="Email" required disabled/>
+                                <input type="hidden" name="Email" value="@username" />
+                            </div>
+                            <div class="col-auto" id="changePasswordWrapper1">
+                                <button type="button" class="btn btn-outline-secondary p-2" id="changePasswordBtn1">
+                                    เปลี่ยนรหัสผ่าน
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ฟิลด์รหัสผ่านใหม่ / ยืนยันรหัสผ่าน -->
+                        <div id="passwordFields1" style="display: none;">
+                            <div class="mb-3">
+                                <label for="editPassword" class="form-label">รหัสผ่านใหม่</label>
+                                <input type="password"
+                                       class="form-control p-2"
+                                       id="editPassword1"
+                                       name="Password"
+                                       disabled
+                                       pattern="(?=.*[A-Za-z])(?=.*\d).{8,}"
+                                       title="รหัสผ่านต้องมีตัวอักษรและตัวเลขอย่างต่ำ 8 ตัว" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="editConfirmPassword" class="form-label">ยืนยันรหัสผ่าน</label>
+                                <input type="password" class="form-control p-2" id="editConfirmPassword1" name="ConfirmPassword" disabled />
+                            </div>
+                        </div>
+
+                        <!-- สิทธิ์ -->
+                        <div class="mb-3">
+                            <label for="editRole" class="form-label">สิทธิ์</label>
+                            <select class="form-select p-2" id="editRole1" name="Role" required disabled>
+								<option value="@role">@role</option>
+                            </select>
+                            <input type="hidden" name="Role" value="@role" />
+                        </div>
+                    </div>
+
+                    <div class="modal-footer p-2">
+                        <button type="submit" class="btn btn-warning text-dark p-2 me-1">บันทึก</button>
+                        <button type="button" class="btn btn-secondary p-2" data-bs-dismiss="modal">ยกเลิก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Logout Confirmation Modal -->
     <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered mx-auto logout-layout">
-            <div class="modal-content border-0 shadow w-100 ">
+            <div class="modal-content border-0 shadow w-100">
                 <div class="modal-header bg-danger text-white p-3">
                     <h5 class="modal-title">ยืนยันการออกจากระบบ</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -161,7 +249,7 @@
                 <div class="modal-footer p-2">
                     <form method="post" action="/Account/Logout">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-danger p-2">ออกจากระบบ</button>
+                        <button type="submit" class="btn btn-danger p-2 me-1">ออกจากระบบ</button>
                         <button type="button" class="btn btn-secondary p-2" data-bs-dismiss="modal">ยกเลิก</button>
                     </form>
                 </div>
@@ -184,6 +272,63 @@
             const overlay = document.querySelector('.sidebar-overlay');
             overlay.style.display = sidebar.classList.contains('sidebar-visible') ? 'block' : 'none';
         }
+
+        var editModal = document.getElementById('editUserModal');
+        editModal.addEventListener('show.bs.modal', function (event) {
+            
+            var btn = event.relatedTarget;
+            var id = btn.getAttribute('data-id1');
+            var inInt = parseInt(id, 10);
+            document.getElementById('editId1').value = id;
+            document.getElementById('editFullName1').value = btn.getAttribute('data-fullname1');
+            document.getElementById('editEmail1').value = btn.getAttribute('data-email1');
+            document.getElementById('editPhone1').value = btn.getAttribute('data-phone1');
+            document.getElementById('editAddress1').value = btn.getAttribute('data-address1');
+            document.getElementById('editRole1').value = btn.getAttribute('data-role1');
+            document.getElementById('editForm1').action = `/Account/Edit/${inInt}`;
+
+            // เคลียร์ & ปิดใช้ฟิลด์รหัสผ่าน
+            var pw = document.getElementById('editPassword1');
+            var pwc = document.getElementById('editConfirmPassword1');
+            pw.value = '';
+            pwc.value = '';
+            pw.disabled = true;
+            pwc.disabled = true;
+            document.getElementById('passwordFields1').style.display = 'none';
+            document.getElementById('changePasswordWrapper1').style.display = 'block';
+        });
+
+         // เมื่อคลิกเปลี่ยนรหัสผ่าน
+        document.getElementById('changePasswordBtn1').addEventListener('click', function () {
+            var pw = document.getElementById('editPassword1');
+            var pwc = document.getElementById('editConfirmPassword1');
+            pw.disabled = false;
+            pwc.disabled = false;
+            document.getElementById('passwordFields1').style.display = 'block';
+            document.getElementById('changePasswordWrapper1').style.display = 'none';
+        });
+
+        // ตรวจสอบรหัสผ่านก่อน submit
+        document.getElementById('editForm').addEventListener('submit', function (e) {
+            var pw = document.getElementById('editPassword1');
+            var pwc = document.getElementById('editConfirmPassword1');
+            if (!pw.disabled && pw.value !== pwc.value) {
+                e.preventDefault();
+                Swal.fire({ icon: 'error', title: 'รหัสผ่านไม่ตรงกัน', text: 'กรุณากรอกรหัสผ่านให้ตรงกัน' });
+            }
+        });
+
+         // แจ้งเตือนสำเร็จ/ซ้ำอีเมล
+        @if (TempData["Success"] != null)
+        {
+            <text>Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', showConfirmButton: false, timer: 2000 });</text>
+        }
+        @if (TempData["DuplicateEmail"] != null)
+        {
+            <text>Swal.fire({ icon: 'error', title: 'อีเมลนี้ถูกใช้แล้ว', text: 'กรุณาใช้อีเมลอื่น', confirmButtonText: 'ตกลง' });</text>
+        }
+
+		
     </script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <!-- Select2 JS -->

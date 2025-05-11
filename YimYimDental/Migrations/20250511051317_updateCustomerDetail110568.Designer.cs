@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using YimYimDental.Data;
 
@@ -11,9 +12,11 @@ using YimYimDental.Data;
 namespace YimYimDental.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250511051317_updateCustomerDetail110568")]
+    partial class updateCustomerDetail110568
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,41 +24,6 @@ namespace YimYimDental.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("YimYimDental.Models.Billing", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ItemType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TreatmentHistoryId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TreatmentHistoryId");
-
-                    b.ToTable("Billings");
-                });
 
             modelBuilder.Entity("YimYimDental.Models.Customer", b =>
                 {
@@ -162,6 +130,9 @@ namespace YimYimDental.Migrations
 
                     b.Property<string>("DentistName")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EquipmentDetails")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsPaid")
@@ -300,17 +271,6 @@ namespace YimYimDental.Migrations
                     b.ToTable("Xrays");
                 });
 
-            modelBuilder.Entity("YimYimDental.Models.Billing", b =>
-                {
-                    b.HasOne("YimYimDental.Models.TreatmentHistory", "TreatmentHistory")
-                        .WithMany("Billings")
-                        .HasForeignKey("TreatmentHistoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TreatmentHistory");
-                });
-
             modelBuilder.Entity("YimYimDental.Models.TreatmentHistory", b =>
                 {
                     b.HasOne("YimYimDental.Models.Customer", "Customer")
@@ -347,11 +307,6 @@ namespace YimYimDental.Migrations
             modelBuilder.Entity("YimYimDental.Models.Customer", b =>
                 {
                     b.Navigation("TreatmentHistories");
-                });
-
-            modelBuilder.Entity("YimYimDental.Models.TreatmentHistory", b =>
-                {
-                    b.Navigation("Billings");
                 });
 #pragma warning restore 612, 618
         }

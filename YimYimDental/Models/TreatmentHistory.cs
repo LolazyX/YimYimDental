@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace YimYimDental.Models
 {
@@ -14,20 +16,26 @@ namespace YimYimDental.Models
         public Customer Customer { get; set; }
 
         [Display(Name = "ผลการตรวจ")]
+        [Required(ErrorMessage = "กรุณาระบุผลการตรวจ")]
         public string TreatmentDetails { get; set; }
 
-        [Display(Name = "อุปกรณ์เพิ่มเติม")]
-        public string? EquipmentDetails { get; set; }
-
         [Display(Name = "แพทย์ผู้ตรวจ")]
+        [Required(ErrorMessage = "กรุณาระบุชื่อแพทย์ผู้ตรวจ")]
         public string DentistName { get; set; }
 
         [Display(Name = "สิทธิ์การรักษา")]
+        [Required(ErrorMessage = "กรุณาเลือกสิทธิ์การรักษา")]
         public string TreatmentRights { get; set; }
+
+        [Display(Name = "ชำระเงินแล้ว")]
+        public bool IsPaid { get; set; }
 
         [Required]
         [Display(Name = "วันที่รักษา")]
-        [DataType(DataType.Date)]
+        [DataType(DataType.DateTime)]
         public DateTime TreatmentDate { get; set; }
+
+        // Navigation property สำหรับรายการเรียกเก็บเงิน
+        public virtual ICollection<Billing> Billings { get; set; }
     }
 }

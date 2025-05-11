@@ -1,5 +1,7 @@
-﻿using System.Data;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using YimYimDental.Data;
@@ -44,7 +46,6 @@ namespace YimYimDental.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Customer customer)
         {
-            // สร้าง HN อัตโนมัติ
             var lastCustomer = _db.Customers
                 .OrderByDescending(c => c.Id)
                 .FirstOrDefault();
@@ -56,9 +57,8 @@ namespace YimYimDental.Controllers
             }
 
             int newHNNumber = lastHNNumber + 1;
-            customer.HN = newHNNumber.ToString("D6"); // เติม 0 ข้างหน้า เช่น 000001
+            customer.HN = newHNNumber.ToString("D6");
 
-            // ลบ validation error ของ HN เพราะกำหนดเอง
             ModelState.Remove(nameof(Customer.HN));
 
             if (ModelState.IsValid)
@@ -69,7 +69,6 @@ namespace YimYimDental.Controllers
                 return RedirectToAction("Index");
             }
 
-            // ถ้ามี error ให้แสดงในฟอร์ม
             TempData["Error"] = true;
             return View(customer);
         }
@@ -127,20 +126,7 @@ namespace YimYimDental.Controllers
             return RedirectToAction("Index");
         }
 
-        // GET: Customer/TreatmentHistory/{id}
-        // หน้าแสดงประวัติการรักษาของลูกค้าแต่ละราย
-        public IActionResult TreatmentHistory(int id)
-        {
-            var customer = _db.Customers
-                .Include(c => c.TreatmentHistories)
-                .FirstOrDefault(c => c.Id == id);
-            if (customer == null)
-            {
-                return NotFound();
-            }
-            return View(customer);
-        }
-
+        // GET: Customer/Details/{id}
         public async Task<IActionResult> Details(int? id, int? queue)
         {
             var username = HttpContext.Session.GetString("Username");
@@ -157,6 +143,7 @@ namespace YimYimDental.Controllers
 
             var customer = await _db.Customers
                 .Include(c => c.TreatmentHistories)
+                .ThenInclude(th => th.Billings)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (customer == null)
@@ -165,19 +152,20 @@ namespace YimYimDental.Controllers
             }
 
             var xrays = _db.Xrays
-                   .Where(x => x.CustomerId == id)
-                   .OrderByDescending(x => x.CreatedAt)
-                   .ToList();
+                .Where(x => x.CustomerId == id)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToList();
 
-            // คำนวณอายุ
             int age = 0;
-            if (customer.DateOfBirth != null)
+            if (customer.DateOfBirth.HasValue)
             {
                 var today = DateTime.Today;
                 age = today.Year - customer.DateOfBirth.Value.Year;
                 if (customer.DateOfBirth.Value.Date > today.AddYears(-age)) age--;
             }
 
+            ViewBag.Services = await _db.Services.ToListAsync() ?? new List<Service>();
+            ViewBag.Equipments = await _db.Equipments.ToListAsync() ?? new List<Equipment>();
             ViewBag.Username = username;
             ViewBag.Role = role;
             ViewBag.DentistName = dentistName;
@@ -192,60 +180,94 @@ namespace YimYimDental.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult SaveHistory(
-            int id,                             // รหัสลูกค้า (Customer.Id)
-            string TreatmentDetails,           // ผลการตรวจ
-            string? EquipmentDetails,           // อุปกรณ์เพิ่มเติม
-            string TreatmentRight,             // สิทธิ์การรักษา
+            int id,
+            string TreatmentDetails,
+            string TreatmentRight,
             string DentistName,
-            int queue// แพทย์ผู้ตรวจ
-        )
+            int queue,
+            [FromForm] List<BillingItem> BillingItems)
         {
-            // ตรวจสอบว่ามี session Role หรือไม่ (ถ้ายังไม่ได้ login จะพาไปหน้า AccessDenied)
             var role = HttpContext.Session.GetString("Role");
             if (string.IsNullOrEmpty(role))
                 return RedirectToAction("AccessDenied", "Account");
 
-            // สร้าง record ใหม่
+            if (string.IsNullOrEmpty(TreatmentDetails) || string.IsNullOrEmpty(TreatmentRight) || string.IsNullOrEmpty(DentistName))
+            {
+                TempData["Error"] = "กรุณากรอกข้อมูลให้ครบถ้วน";
+                return RedirectToAction("Details", new { id });
+            }
+
             var history = new TreatmentHistory
             {
                 CustomerId = id,
                 TreatmentDetails = TreatmentDetails,
-                EquipmentDetails = EquipmentDetails ?? "",
                 TreatmentRights = TreatmentRight,
                 DentistName = DentistName,
-                TreatmentDate = DateTime.Now
+                TreatmentDate = DateTime.Now,
+                IsPaid = false
             };
 
-            // ตรวจสอบความถูกต้องของข้อมูลเบื้องต้น
             if (!ModelState.IsValid)
             {
-                // กรณีข้อมูลไม่ครบ ให้กลับไปที่หน้า Details
+                TempData["Error"] = "ข้อมูลไม่ถูกต้อง";
                 return RedirectToAction("Details", new { id });
             }
 
-            // บันทึกลงฐานข้อมูล
             _db.TreatmentHistories.Add(history);
-            // หา TreatmentQueue ที่มี Id ตรงกับ queue แล้วอัปเดตสถานะ
+            _db.SaveChanges();
+
+            if (BillingItems != null && BillingItems.Any())
+            {
+                foreach (var item in BillingItems)
+                {
+                    if (item == null || item.ItemId == 0 || string.IsNullOrEmpty(item.ItemType) || item.Quantity <= 0)
+                    {
+                        continue;
+                    }
+
+                    var billing = new Billing
+                    {
+                        TreatmentHistoryId = history.Id,
+                        ItemId = item.ItemId,
+                        ItemType = item.ItemType,
+                        Quantity = item.Quantity,
+                        Price = item.Price,
+                        PaymentStatus = "ยังไม่ชำระ"
+                    };
+                    _db.Billings.Add(billing);
+                }
+            }
+
             var treatmentQueue = _db.TreatmentQueues.FirstOrDefault(q => q.Id == queue);
             if (treatmentQueue != null)
             {
                 treatmentQueue.Status = "รักษาเสร็จแล้ว";
                 _db.TreatmentQueues.Update(treatmentQueue);
             }
+
             _db.SaveChanges();
             TempData["Success"] = "บันทึกประวัติการรักษาแล้ว";
             return RedirectToAction("Index", "Queue");
         }
 
+        // POST: Customer/DeleteHistory/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteHistory(int id)
         {
-            var history = _db.TreatmentHistories.FirstOrDefault(h => h.Id == id);
+            var history = _db.TreatmentHistories
+                .Include(th => th.Billings)
+                .FirstOrDefault(h => h.Id == id);
+
             if (history == null)
                 return NotFound();
 
             var customerId = history.CustomerId;
+
+            if (history.Billings != null)
+            {
+                _db.Billings.RemoveRange(history.Billings);
+            }
 
             _db.TreatmentHistories.Remove(history);
             _db.SaveChanges();
@@ -253,6 +275,7 @@ namespace YimYimDental.Controllers
             return RedirectToAction("Details", new { id = customerId });
         }
 
+        // POST: Customer/EditTreatmen
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EditTreatmen(TreatmentHistory updated)
@@ -263,14 +286,33 @@ namespace YimYimDental.Controllers
 
             existing.TreatmentDate = updated.TreatmentDate;
             existing.TreatmentDetails = updated.TreatmentDetails;
-            existing.EquipmentDetails = updated.EquipmentDetails;
             existing.TreatmentRights = updated.TreatmentRights;
             existing.DentistName = updated.DentistName;
 
             _db.SaveChanges();
 
-            return RedirectToAction("Details", "Customer", new { id = existing.CustomerId });
+            return RedirectToAction("Details", new { id = existing.CustomerId });
         }
 
+        public class UpdatePaymentStatusModel
+        {
+            public int TreatmentId { get; set; }
+            public bool IsPaid { get; set; }
+        }
+
+        // POST: Customer/UpdatePaymentStatus
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdatePaymentStatus([FromBody] UpdatePaymentStatusModel model)
+        {
+            var history = _db.TreatmentHistories.FirstOrDefault(th => th.Id == model.TreatmentId);
+            if (history == null)
+                return Json(new { success = false });
+
+            history.IsPaid = model.IsPaid;
+            _db.SaveChanges();
+
+            return Json(new { success = true });
+        }
     }
 }

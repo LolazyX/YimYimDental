@@ -37,7 +37,7 @@
                 <tbody>
                     @foreach (var service in Model)
                     {
-						count++;
+                        count++;
                         <tr>
                             <td class="text-center">@count</td>
                             <td>@service.Name</td>
@@ -124,8 +124,8 @@
 @section Scripts {
     <script>
         // ตั้งค่า Modal สำหรับแก้ไข
-        const editModal = document.getElementById('editServiceModal');
-        editModal.addEventListener('show.bs.modal', function (event) {
+        const editModalService = document.getElementById('editServiceModal');
+        editModalService.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
 
             // ตั้งค่าข้อมูลที่เกี่ยวข้อง
@@ -138,8 +138,8 @@
         });
 
         // ตั้งค่า Modal สำหรับลบ
-        const deleteModal = document.getElementById('deleteServiceModal');
-        deleteModal.addEventListener('show.bs.modal', function (event) {
+        const deleteModalService = document.getElementById('deleteServiceModal');
+        deleteModalService.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
 
             const name = button.getAttribute('data-name');
@@ -151,12 +151,12 @@
         @if (TempData["Success"] != null)
         {
             <text>
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'เพิ่มบริการสำเร็จ',
-                            showConfirmButton: true,
-                            timer: 2000
-                        });
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'เพิ่มบริการสำเร็จ',
+                                showConfirmButton: true,
+                                timer: 2000
+                            });
             </text>
         }
     </script>

@@ -15,6 +15,9 @@ namespace YimYimDental.Data
         public DbSet<WorkingTime> WorkingTimes { get; set; }
         public DbSet<Equipment> Equipments { get; set; }
         public DbSet<Xray> Xrays { get; set; }
+        public DbSet<Billing> Billings { get; set; }
+
+        
     }
 }
 

@@ -123,8 +123,8 @@
 
 @section Scripts {
     <script>
-        const editModal = document.getElementById('editEquipmentModal');
-        editModal.addEventListener('show.bs.modal', function (event) {
+        const editModalEquipment = document.getElementById('editEquipmentModal');
+        editModalEquipment.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             document.getElementById('editEquipmentId').value = button.getAttribute('data-id');
             document.getElementById('editEquipmentName').value = button.getAttribute('data-name');
@@ -132,8 +132,8 @@
             document.getElementById('editEquipmentForm').action = `/Officer/EquipmentEdit/${button.getAttribute('data-id')}`;
         });
 
-        const deleteModal = document.getElementById('deleteEquipmentModal');
-        deleteModal.addEventListener('show.bs.modal', function (event) {
+        const deleteModalEquipment = document.getElementById('deleteEquipmentModal');
+        deleteModalEquipment.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             const name = button.getAttribute('data-name');
             const id = button.getAttribute('data-id');

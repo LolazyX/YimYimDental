@@ -38,6 +38,6 @@ namespace YimYimDental.Models
         public string Role { get; set; }
 
         [Display(Name = "ที่อยู่")]
-        public string Address { get; set; }
+        public string? Address { get; set; }
     }
 }

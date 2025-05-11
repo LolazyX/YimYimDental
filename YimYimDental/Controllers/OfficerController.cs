@@ -25,25 +25,52 @@ namespace YimYimDental.Controllers
             var today = DateTime.Today;
             var tomorrow = today.AddDays(1);
 
-            // ดึงข้อมูลที่ต้องใช้
-            var totalCustomers = await _db.Customers.CountAsync();
-            var todayQueueCount = await _db.TreatmentQueues.CountAsync(q => q.AppointmentTime.Date == today);
-            var tomorrowQueueCount = await _db.TreatmentQueues.CountAsync(q => q.AppointmentTime == tomorrow);
+            // สถิติเดิม
+            ViewBag.TotalCustomers = await _db.Customers.CountAsync();
+            ViewBag.TodayQueue = await _db.TreatmentQueues.CountAsync(q => q.AppointmentTime.Date == today);
+            ViewBag.TomorrowQueue = await _db.TreatmentQueues.CountAsync(q => q.AppointmentTime.Date == tomorrow);
 
-            var todayDentists = await _db.WorkingTimes
+            // ทันตแพทย์วันนี้
+            ViewBag.TodayDentists = await _db.WorkingTimes
                 .Where(w => w.Start.Date == today)
                 .OrderBy(w => w.Start)
                 .ToListAsync();
 
+            // — เรียงลูกค้าตามเวลานัดหมายจริง สำหรับวันนี้
+            ViewBag.TodayQueueDetails = await _db.TreatmentQueues
+                .Include(q => q.Customer)
+                .Where(q => q.AppointmentTime.Date == today)
+                .OrderBy(q => q.AppointmentTime)
+                .Select(q => new {
+                    q.AppointmentTime,
+                    q.Customer.HN,
+                    q.Customer.Prefix,
+                    q.Customer.FullName,
+                    q.Customer.Phone
+                })
+                .ToListAsync();
+
+            // — เรียงลูกค้าตามเวลานัดหมายจริง สำหรับพรุ่งนี้
+            ViewBag.TomorrowQueueDetails = await _db.TreatmentQueues
+                .Include(q => q.Customer)
+                .Where(q => q.AppointmentTime.Date == tomorrow)
+                .OrderBy(q => q.AppointmentTime)
+                .Select(q => new {
+                    q.AppointmentTime,
+                    q.Customer.HN,
+                    q.Customer.Prefix,
+                    q.Customer.FullName,
+                    q.Customer.Phone
+                })
+                .ToListAsync();
+
             ViewBag.Username = username;
             ViewBag.Role = role;
-            ViewBag.TotalCustomers = totalCustomers;
-            ViewBag.TodayQueue = todayQueueCount;
-            ViewBag.TomorrowQueue = tomorrowQueueCount;
-            ViewBag.TodayDentists = todayDentists;
 
             return View();
         }
+
+
 
         public IActionResult CustomerCreate()
         {

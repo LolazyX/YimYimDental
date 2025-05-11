@@ -114,6 +114,7 @@ namespace YimYimDental.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, UserViewModel updatedUser)
         {
+            Console.WriteLine("id = " + id);
             // 1. ตรวจสิทธิ์เหมือนเดิม…
             var userInDb = _db.Users.Find(id);
             if (userInDb == null) return NotFound();
@@ -151,7 +152,7 @@ namespace YimYimDental.Controllers
                                               .SelectMany(v => v.Errors)
                                               .Select(e => e.ErrorMessage)
                                               .ToList();
-            return RedirectToAction("SystemUser");
+            return View(updatedUser);
         }
 
         [HttpPost]

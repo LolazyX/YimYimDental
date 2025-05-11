@@ -34,7 +34,6 @@
                     <tr>
                         <th>ลำดับ</th>
                         <th>HN</th>
-                        <th>คำนำหน้า</th>
                         <th>ชื่อ-สกุล</th>
                         <th>เพศ</th>
                         <th>อายุ (ปี)</th>
@@ -51,8 +50,7 @@
                         <tr>
                             <td class="text-center">@customer.Index</td>
                             <td class="text-center">@customer.c.HN</td>
-                            <td class="text-center">@customer.c.Prefix</td>
-                            <td>@customer.c.FullName</td>
+                            <td class="text-center">@customer.c.Prefix @customer.c.FullName</td>
                             <td class="text-center">@customer.c.Gender</td>
                             <td class="text-center">@age</td>
                             <td class="text-center">
