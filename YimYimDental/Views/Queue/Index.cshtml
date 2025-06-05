@@ -240,8 +240,8 @@
                     this.closest('form').submit();
         });
 
-        const editModal = document.getElementById('editQueueModal');
-        editModal.addEventListener('show.bs.modal', function (event) {
+        const edittQueueModal = document.getElementById('editQueueModal');
+        edittQueueModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
 
          
@@ -258,6 +258,12 @@
         const deleteModal = document.getElementById('deleteQueueModal');
         deleteModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
+
+            console.log(0);
+
+           setTimeout(function(){
+            //do what you need here
+           }, 2000);
 
             const name = button.getAttribute('data-name');
             document.getElementById('deleteCustomerName').textContent = name;

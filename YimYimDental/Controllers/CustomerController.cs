@@ -21,6 +21,7 @@ namespace YimYimDental.Controllers
         // GET: Customer/Index?search=...
         public IActionResult Index(string search)
         {
+            // ดึงข้อมูล session ของผู้ใช้ (username, role) สำหรับแสดงหรือเช็คสิทธิ์
             var username = HttpContext.Session.GetString("Username");
             var role = HttpContext.Session.GetString("Role");
 
@@ -29,16 +30,22 @@ namespace YimYimDental.Controllers
 
             ViewBag.Username = username;
             ViewBag.Role = role;
-            var customers = _db.Customers.AsQueryable();
 
+            // เริ่มต้น Queryable ของลูกค้าทั้งหมด
+            var query = _db.Customers.AsQueryable();
+
+            // ถ้ามีคำค้นหา (search) ให้กรอง HN ที่มีคำค้นหาอยู่ภายใน (Contains)
             if (!string.IsNullOrEmpty(search))
             {
-                customers = customers.Where(c => c.HN.Contains(search));
+                query = query.Where(c => c.HN.Contains(search));
             }
 
-            customers = customers.OrderBy(c => c.HN);
+            // สั่งเรียงผลลัพธ์ตาม HN จากมากไปน้อย (Descending)
+            var list = query
+                .OrderByDescending(c => c.HN)
+                .ToList();
 
-            return View(customers.ToList());
+            return View(list);
         }
 
         // POST: Customer/Create
@@ -90,13 +97,27 @@ namespace YimYimDental.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(Customer customer)
         {
+            Console.WriteLine("===== Received Customer data =====");
+            Console.WriteLine($"Id               : {customer.Id}");
+            Console.WriteLine($"Prefix           : {customer.Prefix}");
+            Console.WriteLine($"FullName         : {customer.FullName}");
+            Console.WriteLine($"HN               : {customer.HN}");
+            Console.WriteLine($"NationalId       : {customer.NationalId}");
+            Console.WriteLine($"DateOfBirth      : {customer.DateOfBirth?.ToString("yyyy-MM-dd")}");
+            Console.WriteLine($"Gender           : {customer.Gender}");
+            Console.WriteLine($"Phone            : {customer.Phone}");
+            Console.WriteLine($"Email            : {customer.Email}");
+            Console.WriteLine($"Address          : {customer.Address}");
+            Console.WriteLine($"ChronicDiseases  : {customer.ChronicDiseases}");
+            Console.WriteLine($"Allergies        : {customer.Allergies}");
+            Console.WriteLine("====================================");
             if (ModelState.IsValid)
             {
                 _db.Customers.Update(customer);
                 _db.SaveChanges();
                 return RedirectToAction("Details", new { id = customer.Id });
             }
-            return View(customer);
+            return RedirectToAction("Index");
         }
 
         // GET: Customer/Delete/{id}

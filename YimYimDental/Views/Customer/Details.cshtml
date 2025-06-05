@@ -336,6 +336,7 @@
                    data-bs-toggle="modal"
                    data-bs-target="#editCustomerModal"
                    data-id="@Model.Id"
+                   data-prefix="@Model.Prefix"
                    data-fullname="@Model.FullName"
                    data-hn="@Model.HN"
                    data-nationalid="@Model.NationalId"
@@ -374,12 +375,21 @@
                 <div class="modal-body">
                     <input type="hidden" id="editCustomerId" name="Id" />
                     <div class="mb-3">
+                        <label for="editCustomerPrefix" class="form-label">คำนำหน้า</label>
+                        <select class="form-select" id="editCustomerPrefix" name="Prefix" required>
+                            <option value="">-- เลือกคำนำหน้า --</option>
+                            <option value="นาย">นาย</option>
+                            <option value="นางสาว">นางสาว</option>
+                            <option value="นาง">นาง</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label for="editCustomerFullName" class="form-label">ชื่อ-นามสกุล</label>
                         <input type="text" class="form-control" id="editCustomerFullName" name="FullName" required>
                     </div>
                     <div class="mb-3">
                         <label for="editCustomerHN" class="form-label">HN (6 หลัก)</label>
-                        <input type="text" class="form-control" id="editCustomerHN" name="HN" maxlength="6" required>
+                        <input type="text" class="form-control" id="editCustomerHN" name="HN" maxlength="6" readonly required>
                     </div>
                     <div class="mb-3">
                         <label for="editCustomerNationalId" class="form-label">เลขบัตรประชาชน</label>
@@ -531,6 +541,7 @@
         editCustomerModal.addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
             var id = button.getAttribute('data-id');
+            var prefix = button.getAttribute('data-prefix');
             var fullName = button.getAttribute('data-fullname');
             var hn = button.getAttribute('data-hn');
             var nationalId = button.getAttribute('data-nationalid');
@@ -543,6 +554,7 @@
             var allergies = button.getAttribute('data-allergies');
 
             document.getElementById('editCustomerId').value = id;
+            document.getElementById('editCustomerPrefix').value = prefix;
             document.getElementById('editCustomerFullName').value = fullName;
             document.getElementById('editCustomerHN').value = hn;
             document.getElementById('editCustomerNationalId').value = nationalId;
